@@ -1,0 +1,23 @@
+name: Inigresso
+version: ${project.version}
+main: io.github.cndrbrbr.inigresso.InigressoPlugin
+api-version: '26.3'
+author: cndrbrbr
+description: Territorialspiel mit Portalen, Links und Feldern zwischen zwei Fraktionen.
+
+commands:
+  ig:
+    description: Inigresso-Hauptbefehl
+    usage: /<command> hilfe
+    permission: inigresso.use
+
+permissions:
+  inigresso.use:
+    description: Spielerbefehle von /ig
+    default: true
+  inigresso.admin:
+    description: Adminbefehle von /ig (Vorschläge entscheiden, Portale verwalten, reload)
+    default: op
+  inigresso.bypass:
+    description: Darf in geschützten Portalbereichen bauen
+    default: op

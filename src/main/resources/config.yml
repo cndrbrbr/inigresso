@@ -1,0 +1,32 @@
+# Inigresso – Konfiguration, siehe rules.md und architecture.md
+worlds: [world]
+
+portal:
+  min-distance: 48
+  protect-radius: 4
+  resonator-radius: 3
+  resonator-blocks: [COPPER_BLOCK, IRON_BLOCK, GOLD_BLOCK, REDSTONE_BLOCK,
+                     LAPIS_BLOCK, EMERALD_BLOCK, AMETHYST_BLOCK, DIAMOND_BLOCK]
+
+proposal:
+  min-level: 2
+  max-open: 3
+
+link:
+  max-range: 2000
+  max-outgoing: 8
+
+decay:
+  percent-per-day: 15
+  time: "03:00"
+
+hack:
+  cooldown-minutes: 5
+  max-per-4h: 4
+  key-chance: 0.30
+
+player:
+  max-items: 500
+
+cycle:
+  start-day: MONDAY

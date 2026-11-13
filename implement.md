@@ -5,21 +5,21 @@ läuft. Regeln: [rules.md](rules.md), Aufbau: [architecture.md](architecture.md)
 
 ## Phase 0 – Grundgerüst
 
-- [ ] Maven-Projekt (Spigot 26.3-API, Java 25, JUnit 5, Mockito), `plugin.yml`,
+- [x] Maven-Projekt (Spigot 26.3-API, Java 25, JUnit 5, Mockito), `plugin.yml`,
       `config.yml`, `.gitignore`
-- [ ] `InigressoPlugin` mit Startreihenfolge: Konfiguration → Datenbank → Services →
+- [x] `InigressoPlugin` mit Startreihenfolge: Konfiguration → Datenbank → Services →
       Render → Listener/Befehle
-- [ ] `Database`: SQLite-Verbindung, Migration `V1__init.sql`, asynchrone Schreibqueue,
+- [x] `Database`: SQLite-Verbindung, Migration `V1__init.sql`, asynchrone Schreibqueue,
       sauberes Herunterfahren
-- [ ] `/ig` mit Unterbefehl-Gerüst, Hilfe, Tab-Completion, Permissions
+- [x] `/ig` mit Unterbefehl-Gerüst, Hilfe, Tab-Completion, Permissions
 - **Fertig, wenn:** Plugin startet und stoppt sauber auf Spigot 26.3, DB-Datei wird angelegt.
 
 ## Phase 1 – Geometrie (ohne Bukkit)
 
-- [ ] `Vec2`, `Segment`, `Triangle`, `Geometry.crosses`, `area`, `contains`
-- [ ] Sonderfälle testen: gemeinsame Endpunkte, kollineare Segmente, Punkt auf Kante,
+- [x] `Vec2`, `Segment`, `Triangle`, `Geometry.crosses`, `area`, `contains`
+- [x] Sonderfälle testen: gemeinsame Endpunkte, kollineare Segmente, Punkt auf Kante,
       degenerierte Dreiecke
-- **Fertig, wenn:** Tests grün.
+- **Fertig, wenn:** Tests grün. ✔ (0.1.0: 14 Geometrie- + 3 DB-Tests; Start/Stopp auf Spigot 26.3 geprüft)
 
 ## Phase 2 – Fraktionen und Spielerprofil
 
