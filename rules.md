@@ -114,7 +114,7 @@ außerhalb des Spiels nachgemacht werden.
 - Rechtsklick auf den Kern eines Portals ohne Resonator oder Burst in der Hand = **Hacken**.
 - Ergebnis: zufällig 2–4 Gegenstände, am gegnerischen Portal 3–5. Je zur Hälfte
   Resonatoren oder Bursts, Stufe = Portalstufe −1, ±0 oder +1 (neutrale Portale zählen als
-  Stufe 1), begrenzt auf 1–8. Dazu mit 30 % Chance ein Schlüssel dieses Portals.
+  Stufe 1), begrenzt auf 1–8. Dazu mit 50 % Chance ein Schlüssel dieses Portals.
 - Man darf Gegenstände über der eigenen Stufe erbeuten, aber erst mit höherer Stufe benutzen.
 - Abklingzeit pro Spieler und Portal: 5 Minuten. Höchstens 4 Hacks pro Portal und
   Spieler in 4 Stunden.

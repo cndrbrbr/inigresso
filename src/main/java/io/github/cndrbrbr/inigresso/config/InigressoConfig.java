@@ -47,7 +47,7 @@ public record InigressoConfig(
                 time(c.getString("decay.time", "03:00"), log),
                 c.getInt("hack.cooldown-minutes", 5),
                 c.getInt("hack.max-per-4h", 4),
-                c.getDouble("hack.key-chance", 0.30),
+                c.getDouble("hack.key-chance", 0.50),
                 c.getInt("player.max-items", 500),
                 day(c.getString("cycle.start-day", "MONDAY"), log),
                 Math.max(1, c.getInt("cycle.length-hours", 168)),

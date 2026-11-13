@@ -163,7 +163,7 @@ decay:
 hack:
   cooldown-minutes: 5
   max-per-4h: 4
-  key-chance: 0.30
+  key-chance: 0.50
 player:
   max-items: 500
 cycle:
