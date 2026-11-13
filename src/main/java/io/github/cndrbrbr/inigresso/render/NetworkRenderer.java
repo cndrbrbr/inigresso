@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.DoubleSupplier;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
@@ -28,6 +29,9 @@ public final class NetworkRenderer {
     /** Sichtweite der Link-Partikel um einen Spieler. */
     static final double VIEW = 64;
     static final double STEP = 1.5;
+    /** Sichtweite und Rasterabstand der Feld-Partikel. */
+    static final double FIELD_VIEW = 40;
+    static final int FIELD_GRID = 3;
 
     private final LinkService links;
     private final PortalService portals;
@@ -87,6 +91,76 @@ public final class NetworkRenderer {
         double stepT = STEP / len;
         for (double s = from; s <= to; s += stepT) {
             player.spawnParticle(Particle.DUST, ax + s * dx, ay + s * dy, az + s * dz, 1, 0, 0, 0, 0, dust);
+        }
+    }
+
+    /**
+     * Alle 10 Ticks: Felder als leuchtende Fläche in der Luft. Die Fläche spannt sich zwischen
+     * den drei Link-Strahlen auf (gleiche Höhe über den Kernen), gezeichnet als lockeres Raster
+     * aus Partikeln in Fraktionsfarbe, nur im Umkreis FIELD_VIEW um den Spieler.
+     */
+    public void drawFields() {
+        if (links.fields().isEmpty()) {
+            return;
+        }
+        double h = height.getAsDouble();
+        ThreadLocalRandom rnd = ThreadLocalRandom.current();
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            Location loc = player.getLocation();
+            String world = loc.getWorld().getName();
+            for (Field f : links.fields()) {
+                Optional<Portal> pa = portals.get(f.a());
+                Optional<Portal> pb = portals.get(f.b());
+                Optional<Portal> pc = portals.get(f.c());
+                if (pa.isEmpty() || pb.isEmpty() || pc.isEmpty() || !pa.get().core().world().equals(world)) {
+                    continue;
+                }
+                drawField(player, loc, pa.get(), pb.get(), pc.get(), h, rnd,
+                        new Particle.DustOptions(fieldColor(f.faction()), 1.6f));
+            }
+        }
+    }
+
+    private static Color fieldColor(Faction f) {
+        return f == Faction.LUMEN ? Color.fromRGB(0x7d, 0xff, 0x6a) : Color.fromRGB(0x6a, 0x9c, 0xff);
+    }
+
+    private static void drawField(Player player, Location loc, Portal a, Portal b, Portal c, double h,
+            ThreadLocalRandom rnd, Particle.DustOptions dust) {
+        double ax = a.core().x() + 0.5, az = a.core().z() + 0.5, ay = a.core().y() + h;
+        double bx = b.core().x() + 0.5, bz = b.core().z() + 0.5, by = b.core().y() + h;
+        double cx = c.core().x() + 0.5, cz = c.core().z() + 0.5, cy = c.core().y() + h;
+        double det = (bz - cz) * (ax - cx) + (cx - bx) * (az - cz);
+        if (Math.abs(det) < 1e-9) {
+            return;
+        }
+        double minX = Math.max(Math.min(ax, Math.min(bx, cx)), loc.getX() - FIELD_VIEW);
+        double maxX = Math.min(Math.max(ax, Math.max(bx, cx)), loc.getX() + FIELD_VIEW);
+        double minZ = Math.max(Math.min(az, Math.min(bz, cz)), loc.getZ() - FIELD_VIEW);
+        double maxZ = Math.min(Math.max(az, Math.max(bz, cz)), loc.getZ() + FIELD_VIEW);
+        if (minX > maxX || minZ > maxZ) {
+            return;
+        }
+        // Raster an festen Weltkoordinaten ausrichten, damit es beim Laufen nicht mitwandert.
+        double startX = Math.ceil(minX / FIELD_GRID) * FIELD_GRID;
+        double startZ = Math.ceil(minZ / FIELD_GRID) * FIELD_GRID;
+        double r2 = FIELD_VIEW * FIELD_VIEW;
+        for (double x = startX; x <= maxX; x += FIELD_GRID) {
+            for (double z = startZ; z <= maxZ; z += FIELD_GRID) {
+                double ddx = x - loc.getX(), ddz = z - loc.getZ();
+                if (ddx * ddx + ddz * ddz > r2 || rnd.nextInt(3) == 0) {
+                    continue; // Kreis um den Spieler; jeder dritte Punkt fällt aus → Flimmern
+                }
+                double l1 = ((bz - cz) * (x - cx) + (cx - bx) * (z - cz)) / det;
+                double l2 = ((cz - az) * (x - cx) + (ax - cx) * (z - cz)) / det;
+                double l3 = 1 - l1 - l2;
+                if (l1 < 0 || l2 < 0 || l3 < 0) {
+                    continue;
+                }
+                double y = l1 * ay + l2 * by + l3 * cy;
+                player.spawnParticle(Particle.DUST, x + rnd.nextDouble(-0.8, 0.8), y + rnd.nextDouble(-0.3, 0.3),
+                        z + rnd.nextDouble(-0.8, 0.8), 1, 0, 0, 0, 0, dust);
+            }
         }
     }
 
