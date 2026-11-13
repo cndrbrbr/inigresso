@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.DoubleSupplier;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.Location;
@@ -30,11 +31,14 @@ public final class NetworkRenderer {
 
     private final LinkService links;
     private final PortalService portals;
+    private final DoubleSupplier height;
     private final Map<UUID, BossBar> bars = new HashMap<>();
 
-    public NetworkRenderer(LinkService links, PortalService portals) {
+    /** @param height Höhe des Strahls über dem Kernblock (config link.beam-height) */
+    public NetworkRenderer(LinkService links, PortalService portals, DoubleSupplier height) {
         this.links = links;
         this.portals = portals;
+        this.height = height;
     }
 
     private static Color color(Faction f) {
@@ -43,6 +47,7 @@ public final class NetworkRenderer {
 
     /** Alle 10 Ticks: Partikel nur auf dem Abschnitt, der nah am Spieler liegt, nur für diesen Spieler. */
     public void drawLinks() {
+        double h = height.getAsDouble();
         for (Player player : Bukkit.getOnlinePlayers()) {
             Location loc = player.getLocation();
             String world = loc.getWorld().getName();
@@ -52,18 +57,18 @@ public final class NetworkRenderer {
                 if (a.isEmpty() || b.isEmpty() || !a.get().core().world().equals(world)) {
                     continue;
                 }
-                draw(player, loc, a.get(), b.get(), new Particle.DustOptions(color(l.faction()), 1.2f));
+                draw(player, loc, a.get(), b.get(), h, new Particle.DustOptions(color(l.faction()), 1.2f));
             }
         }
     }
 
-    private static void draw(Player player, Location loc, Portal a, Portal b, Particle.DustOptions dust) {
+    private static void draw(Player player, Location loc, Portal a, Portal b, double h, Particle.DustOptions dust) {
         double ax = a.core().x() + 0.5;
         double az = a.core().z() + 0.5;
-        double ay = a.core().y() + 1.5;
+        double ay = a.core().y() + h;
         double dx = b.core().x() + 0.5 - ax;
         double dz = b.core().z() + 0.5 - az;
-        double dy = b.core().y() + 1.5 - ay;
+        double dy = b.core().y() + h - ay;
         double len = Math.hypot(dx, dz);
         if (len < 1) {
             return;

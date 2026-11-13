@@ -145,7 +145,7 @@ public final class InigressoPlugin extends JavaPlugin {
                 new ItemGuardListener(itemFactory, gameInventory, profiles, bus), this);
         getServer().getPluginManager().registerEvents(
                 new PlayerConnectionListener(profiles, teams, messages, clock, bus), this);
-        network = new NetworkRenderer(links, portals);
+        network = new NetworkRenderer(links, portals, () -> settings.linkBeamHeight());
         getServer().getScheduler().runTaskTimer(this, network::drawLinks, 10L, 10L);
         getServer().getScheduler().runTaskTimer(this, network::updateBars, 20L, 20L);
         // Verfall: verpasste Tage sofort nachholen, dann jede Minute prüfen.

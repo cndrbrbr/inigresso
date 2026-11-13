@@ -15,6 +15,8 @@ proposal:
 link:
   max-range: 2000
   max-outgoing: 8
+  # Höhe des Partikelstrahls über dem Kernblock (Blöcke)
+  beam-height: 5.0
 
 decay:
   percent-per-day: 15

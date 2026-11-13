@@ -157,6 +157,7 @@ proposal:
 link:
   max-range: 2000
   max-outgoing: 8
+  beam-height: 5.0
 decay:
   percent-per-day: 15
   time: "03:00"
