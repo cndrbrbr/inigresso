@@ -17,7 +17,7 @@ freigegeben.
 - Die Wahl ist dauerhaft. Wechsel nur per Admin (`/ig admin fraktion <spieler> <fraktion>`),
   dabei verliert der Spieler seine Schlüssel und Ausrüstung aus dem Spiel.
 - Ist eine Fraktion um mehr als 30 % größer, wird bei der Wahl ein Hinweis angezeigt
-  (kein Zwang).
+  (kein Zwang). Erst ab 3 Spielern in der kleineren Fraktion, sonst wäre es nur Rauschen.
 - Mitgliedschaft wird über die UUID gespeichert.
 
 ## 2. Portale
@@ -176,7 +176,7 @@ Stufen: 1 = 0 AP, 2 = 2 500, 3 = 20 000, 4 = 70 000, 5 = 150 000, 6 = 300 000,
 
 | Befehl | Wirkung |
 |---|---|
-| `/ig fraktion <lumen\|waechter>` | Fraktion wählen (einmalig) |
+| `/ig fraktion [lumen\|waechter]` | Fraktion wählen (einmalig); ohne Angabe: Größe beider Fraktionen |
 | `/ig info` | Eigene Stufe, AP, Fraktion, Inventar-Füllstand |
 | `/ig portal` | Infos zum nächsten Portal im Umkreis von 16 Blöcken |
 | `/ig vorschlagen <Name>` | Portal vorschlagen |
@@ -196,6 +196,8 @@ Stufen: 1 = 0 AP, 2 = 2 500, 3 = 20 000, 4 = 70 000, 5 = 150 000, 6 = 300 000,
 | `/ig admin portal <umbenennen\|verschieben\|loeschen\|neutral> …` | Portale verwalten |
 | `/ig admin fraktion <spieler> <fraktion>` | Fraktion wechseln |
 | `/ig admin geben <spieler> <item> <stufe> [anzahl]` | Gegenstände geben (Test) |
+| `/ig admin ap <spieler> <+/-menge>` | AP geben/abziehen (Test, Korrektur) |
+| `/ig info <spieler>` | Profil eines anderen Spielers ansehen |
 | `/ig reload` | Konfiguration neu laden |
 
 ## 11. Technik

@@ -23,11 +23,11 @@ läuft. Regeln: [rules.md](rules.md), Aufbau: [architecture.md](architecture.md)
 
 ## Phase 2 – Fraktionen und Spielerprofil
 
-- [ ] `PlayerProfile` laden/anlegen beim Join, speichern
-- [ ] `/ig fraktion`, `/ig info`, Größenhinweis
-- [ ] Fraktionsfarbe im Namen (Scoreboard-Team) und im Chat-Präfix
-- [ ] AP und Stufe (`PlayerProgressService`)
-- **Fertig, wenn:** Fraktion überlebt Neustart, Admin-Wechsel funktioniert.
+- [x] `PlayerProfile` laden/anlegen beim Join, speichern
+- [x] `/ig fraktion`, `/ig info`, Größenhinweis
+- [x] Fraktionsfarbe im Namen (Scoreboard-Team) und im Chat-Präfix
+- [x] AP und Stufe (`PlayerProgressService`)
+- **Fertig, wenn:** Fraktion überlebt Neustart, Admin-Wechsel funktioniert. ✔ unit-getestet (0.2.0); im Spiel mit echtem Spieler noch zu prüfen.
 
 ## Phase 3 – Vorschläge und Portale
 

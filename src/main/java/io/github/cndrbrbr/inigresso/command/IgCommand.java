@@ -1,6 +1,12 @@
 package io.github.cndrbrbr.inigresso.command;
 
 import io.github.cndrbrbr.inigresso.InigressoPlugin;
+import io.github.cndrbrbr.inigresso.model.Faction;
+import io.github.cndrbrbr.inigresso.model.PlayerProfile;
+import io.github.cndrbrbr.inigresso.service.FactionService;
+import io.github.cndrbrbr.inigresso.service.PlayerProgressService;
+import java.util.Optional;
+import org.bukkit.entity.Player;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -20,7 +26,7 @@ public final class IgCommand implements TabExecutor {
 
     private static final List<Sub> SUBS = List.of(
             new Sub("hilfe", false, "", "Diese Hilfe", 0),
-            new Sub("fraktion", false, "<lumen|waechter>", "Fraktion wählen (einmalig)", 2),
+            new Sub("fraktion", false, "[lumen|waechter]", "Fraktion wählen (einmalig)", 2),
             new Sub("info", false, "", "Eigene Stufe, AP und Fraktion", 2),
             new Sub("portal", false, "", "Infos zum nächsten Portal", 3),
             new Sub("vorschlagen", false, "<Name>", "Portal vorschlagen", 3),
@@ -33,7 +39,7 @@ public final class IgCommand implements TabExecutor {
             new Sub("vorschlag", true, "tp <id>", "Zum Vorschlag teleportieren", 3),
             new Sub("annehmen", true, "<id>", "Vorschlag annehmen", 3),
             new Sub("ablehnen", true, "<id> <Grund>", "Vorschlag ablehnen", 3),
-            new Sub("admin", true, "<portal|fraktion|geben> …", "Portale, Fraktionen, Gegenstände verwalten", 3),
+            new Sub("admin", true, "<fraktion|ap|portal|geben> …", "Portale, Fraktionen, Gegenstände verwalten", 3),
             new Sub("reload", true, "", "Konfiguration neu laden", 0));
 
     private final InigressoPlugin plugin;
@@ -60,10 +66,137 @@ public final class IgCommand implements TabExecutor {
                 plugin.reloadSettings();
                 sender.sendMessage(ChatColor.GREEN + "Inigresso-Konfiguration neu geladen.");
             }
+            case "fraktion" -> faction(sender, label, args);
+            case "info" -> info(sender, args);
+            case "admin" -> admin(sender, label, args);
             default -> sender.sendMessage(ChatColor.YELLOW + "/" + label + " " + sub.name
                     + " ist noch nicht fertig (kommt in Phase " + sub.phase + ").");
         }
         return true;
+    }
+
+    private Optional<PlayerProfile> self(CommandSender sender) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(ChatColor.RED + "Nur für Spieler.");
+            return Optional.empty();
+        }
+        return plugin.profiles().get(player.getUniqueId());
+    }
+
+    private void faction(CommandSender sender, String label, String[] args) {
+        Optional<PlayerProfile> me = self(sender);
+        if (me.isEmpty()) {
+            return;
+        }
+        PlayerProfile p = me.get();
+        FactionService factions = plugin.factions();
+        if (args.length < 2) {
+            if (p.hasFaction()) {
+                sender.sendMessage(ChatColor.GRAY + "Deine Fraktion: " + p.faction().colored());
+            } else {
+                sender.sendMessage(ChatColor.YELLOW + "Wähle mit /" + label + " fraktion <lumen|waechter>. Die Wahl gilt dauerhaft.");
+            }
+            for (Faction f : Faction.playable()) {
+                sender.sendMessage("  " + f.colored() + ChatColor.GRAY + ": " + plugin.profiles().count(f) + " Spieler");
+            }
+            return;
+        }
+        Optional<Faction> f = Faction.parsePlayable(args[1]);
+        if (f.isEmpty()) {
+            sender.sendMessage(ChatColor.RED + "Unbekannte Fraktion. Möglich: lumen, waechter");
+            return;
+        }
+        boolean crowded = factions.isOverpopulated(f.get());
+        if (factions.choose(p, f.get()) == FactionService.ChooseResult.ALREADY_CHOSEN) {
+            sender.sendMessage(ChatColor.RED + "Du gehörst schon zu " + p.faction().colored() + ChatColor.RED
+                    + ". Ein Wechsel geht nur über einen Admin.");
+            return;
+        }
+        sender.sendMessage(ChatColor.GOLD + "Willkommen bei " + f.get().colored() + ChatColor.GOLD + "!");
+        if (crowded) {
+            sender.sendMessage(ChatColor.YELLOW + "Hinweis: " + f.get().colored() + ChatColor.YELLOW
+                    + " hat schon deutlich mehr Spieler als " + f.get().opponent().colored() + ChatColor.YELLOW + ".");
+        }
+    }
+
+    private void info(CommandSender sender, String[] args) {
+        Optional<PlayerProfile> target;
+        if (args.length >= 2 && sender.hasPermission("inigresso.admin")) {
+            target = plugin.profiles().byName(args[1]);
+            if (target.isEmpty()) {
+                sender.sendMessage(ChatColor.RED + "Spieler " + args[1] + " ist unbekannt.");
+                return;
+            }
+        } else {
+            target = self(sender);
+            if (target.isEmpty()) {
+                return;
+            }
+        }
+        PlayerProfile p = target.get();
+        long ap = p.ap();
+        long next = PlayerProgressService.apToNextLevel(ap);
+        sender.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + p.lastName());
+        sender.sendMessage(ChatColor.GRAY + "Fraktion: " + (p.hasFaction() ? p.faction().colored() : ChatColor.WHITE + "keine"));
+        sender.sendMessage(ChatColor.GRAY + "Stufe: " + ChatColor.WHITE + PlayerProgressService.levelFor(ap)
+                + ChatColor.GRAY + "  AP: " + ChatColor.WHITE + String.format("%,d", ap)
+                + (next >= 0 ? ChatColor.GRAY + " (noch " + String.format("%,d", next) + " bis zur nächsten Stufe)" : ""));
+        sender.sendMessage(ChatColor.GRAY + "Spiel-Inventar: " + ChatColor.WHITE + "0 / " + plugin.settings().playerMaxItems());
+    }
+
+    private void admin(CommandSender sender, String label, String[] args) {
+        String what = args.length >= 2 ? args[1].toLowerCase(Locale.ROOT) : "";
+        switch (what) {
+            case "fraktion" -> {
+                if (args.length < 4) {
+                    sender.sendMessage(ChatColor.RED + "/" + label + " admin fraktion <spieler> <lumen|waechter>");
+                    return;
+                }
+                Optional<PlayerProfile> p = plugin.profiles().byName(args[2]);
+                Optional<Faction> f = Faction.parsePlayable(args[3]);
+                if (p.isEmpty() || f.isEmpty()) {
+                    sender.sendMessage(ChatColor.RED + (p.isEmpty() ? "Spieler unbekannt." : "Unbekannte Fraktion."));
+                    return;
+                }
+                if (!plugin.factions().adminSet(p.get(), f.get())) {
+                    sender.sendMessage(ChatColor.YELLOW + p.get().lastName() + " ist schon bei " + f.get().colored());
+                    return;
+                }
+                plugin.audit(sender.getName(), "fraktion", p.get().lastName() + " -> " + f.get().name());
+                sender.sendMessage(ChatColor.GREEN + p.get().lastName() + " ist jetzt bei " + f.get().colored()
+                        + ChatColor.GREEN + ". Spielgegenstände wurden entfernt.");
+                Player online = plugin.getServer().getPlayer(p.get().uuid());
+                if (online != null) {
+                    online.sendMessage(ChatColor.GOLD + "Ein Admin hat dich zu " + f.get().colored()
+                            + ChatColor.GOLD + " verschoben.");
+                }
+            }
+            case "ap" -> {
+                if (args.length < 4) {
+                    sender.sendMessage(ChatColor.RED + "/" + label + " admin ap <spieler> <+/-menge>");
+                    return;
+                }
+                Optional<PlayerProfile> p = plugin.profiles().byName(args[2]);
+                long amount;
+                try {
+                    amount = Long.parseLong(args[3].replace("+", ""));
+                } catch (NumberFormatException e) {
+                    sender.sendMessage(ChatColor.RED + "Keine Zahl: " + args[3]);
+                    return;
+                }
+                if (p.isEmpty()) {
+                    sender.sendMessage(ChatColor.RED + "Spieler unbekannt.");
+                    return;
+                }
+                plugin.progress().add(p.get(), amount);
+                plugin.audit(sender.getName(), "ap", p.get().lastName() + " " + amount);
+                sender.sendMessage(ChatColor.GREEN + p.get().lastName() + " hat jetzt " + String.format("%,d", p.get().ap())
+                        + " AP (Stufe " + PlayerProgressService.levelFor(p.get().ap()) + ").");
+            }
+            case "portal", "geben" -> sender.sendMessage(ChatColor.YELLOW + "/" + label + " admin " + what
+                    + " ist noch nicht fertig (kommt in Phase " + (what.equals("portal") ? 3 : 4) + ").");
+            default -> sender.sendMessage(ChatColor.RED + "/" + label + " admin <fraktion|ap|portal|geben> …");
+        }
     }
 
     private void help(CommandSender sender, String label) {
@@ -92,12 +225,27 @@ public final class IgCommand implements TabExecutor {
                 }
             }
         } else if (args.length == 2 && args[0].equalsIgnoreCase("fraktion")) {
-            for (String f : List.of("lumen", "waechter")) {
-                if (f.startsWith(args[1].toLowerCase(Locale.ROOT))) {
-                    out.add(f);
-                }
+            filter(out, List.of("lumen", "waechter"), args[1]);
+        } else if (sender.hasPermission("inigresso.admin")) {
+            if (args.length == 2 && args[0].equalsIgnoreCase("info")) {
+                filter(out, onlineNames(), args[1]);
+            } else if (args.length == 2 && args[0].equalsIgnoreCase("admin")) {
+                filter(out, List.of("fraktion", "ap", "portal", "geben"), args[1]);
+            } else if (args.length == 3 && args[0].equalsIgnoreCase("admin")) {
+                filter(out, onlineNames(), args[2]);
+            } else if (args.length == 4 && args[0].equalsIgnoreCase("admin") && args[1].equalsIgnoreCase("fraktion")) {
+                filter(out, List.of("lumen", "waechter"), args[3]);
             }
         }
         return out;
+    }
+
+    private List<String> onlineNames() {
+        return plugin.getServer().getOnlinePlayers().stream().map(Player::getName).toList();
+    }
+
+    private static void filter(List<String> out, List<String> options, String prefix) {
+        String p = prefix.toLowerCase(Locale.ROOT);
+        options.stream().filter(o -> o.toLowerCase(Locale.ROOT).startsWith(p)).forEach(out::add);
     }
 }
