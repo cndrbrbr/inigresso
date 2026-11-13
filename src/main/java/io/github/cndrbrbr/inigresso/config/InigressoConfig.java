@@ -24,7 +24,9 @@ public record InigressoConfig(
         int hackMaxPer4h,
         double hackKeyChance,
         int playerMaxItems,
-        DayOfWeek cycleStartDay) {
+        DayOfWeek cycleStartDay,
+        int cycleLengthHours,
+        int measureMinutes) {
 
     private static final List<Material> DEFAULT_BLOCKS = List.of(
             Material.COPPER_BLOCK, Material.IRON_BLOCK, Material.GOLD_BLOCK, Material.REDSTONE_BLOCK,
@@ -47,7 +49,9 @@ public record InigressoConfig(
                 c.getInt("hack.max-per-4h", 4),
                 c.getDouble("hack.key-chance", 0.30),
                 c.getInt("player.max-items", 500),
-                day(c.getString("cycle.start-day", "MONDAY"), log));
+                day(c.getString("cycle.start-day", "MONDAY"), log),
+                Math.max(1, c.getInt("cycle.length-hours", 168)),
+                Math.max(1, c.getInt("cycle.measure-minutes", 60)));
     }
 
     private static List<Material> blocks(List<String> names, java.util.logging.Logger log) {

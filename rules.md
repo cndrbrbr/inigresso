@@ -179,9 +179,14 @@ außerhalb des Spiels nachgemacht werden.
 - Überlappende Felder einer Fraktion zählen jeweils voll (wie im Vorbild – Schichten
   lohnen sich).
 - **Messpunkte**: Jede volle Stunde wird der Gesamteinfluss jeder Fraktion gespeichert.
-- **Zyklus**: Eine Woche (Montag 00:00 bis Sonntag 23:59). Gewinner ist die Fraktion
-  mit dem höchsten Durchschnitt der Messpunkte. Ergebnis wird angekündigt und
-  gespeichert (`/ig zyklus`, `/ig zyklus alt`).
+  War der Server aus, fehlen diese Messpunkte (es wird nichts erfunden).
+- **Zyklus**: Eine Woche (Montag 00:00 bis Sonntag 23:59, Serverzeit). Gewinner ist die
+  Fraktion mit dem höchsten Durchschnitt der Messpunkte, bei Gleichstand (auch ohne
+  Messpunkte) unentschieden. Das Ergebnis wird allen im Chat angekündigt und gespeichert
+  (`/ig stand`, `/ig zyklus alt`). Verpasste Zyklusenden werden beim Start nachgeholt.
+- Starttag, Zykluslänge und Messabstand sind einstellbar (`cycle.start-day`,
+  `cycle.length-hours`, `cycle.measure-minutes`), z. B. für kurze Testrunden. Nach einer
+  Änderung wird der laufende Zyklus einmal verkürzt, damit er wieder in den Takt passt.
 - Felder und Portale bleiben über Zyklusgrenzen hinweg bestehen.
 
 ## 9. Spielerstufe und Aktionspunkte (AP)

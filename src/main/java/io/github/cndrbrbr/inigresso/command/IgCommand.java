@@ -80,6 +80,8 @@ public final class IgCommand implements TabExecutor {
             case "inventar" -> inventory(sender);
             case "aufladen" -> recharge(sender, label, args);
             case "link" -> link(sender, label, args);
+            case "stand" -> standing(sender);
+            case "zyklus" -> cycles(sender, args);
             default -> sender.sendMessage(ChatColor.YELLOW + "/" + label + " " + sub.name
                     + " ist noch nicht fertig (kommt in Phase " + sub.phase + ").");
         }
@@ -344,6 +346,64 @@ public final class IgCommand implements TabExecutor {
         };
     }
 
+    private static final java.time.format.DateTimeFormatter DATE =
+            java.time.format.DateTimeFormatter.ofPattern("dd.MM. HH:mm").withZone(java.time.ZoneId.systemDefault());
+
+    private static String fmt(double v) {
+        return String.format(Locale.GERMANY, "%,.0f", v);
+    }
+
+    private static String remaining(long ms) {
+        long min = Math.max(0, ms / 60_000);
+        long d = min / 1440;
+        long h = (min % 1440) / 60;
+        long m = min % 60;
+        return (d > 0 ? d + " T " : "") + (d > 0 || h > 0 ? h + " h " : "") + m + " min";
+    }
+
+    private void standing(CommandSender sender) {
+        var score = plugin.score();
+        var st = score.standing();
+        long lumen = score.influenceNow(Faction.LUMEN);
+        long waechter = score.influenceNow(Faction.WAECHTER);
+        sender.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "Inigresso – Stand");
+        sender.sendMessage(ChatColor.GRAY + "Einfluss jetzt: " + Faction.LUMEN.colored() + " " + ChatColor.WHITE
+                + fmt(lumen) + ChatColor.GRAY + "  |  " + Faction.WAECHTER.colored() + " " + ChatColor.WHITE + fmt(waechter));
+        sender.sendMessage(ChatColor.GRAY + "Zyklus " + DATE.format(java.time.Instant.ofEpochMilli(st.start())) + " – "
+                + DATE.format(java.time.Instant.ofEpochMilli(st.end())) + ", noch "
+                + remaining(st.end() - System.currentTimeMillis()));
+        sender.sendMessage(ChatColor.GRAY + "Durchschnitt (" + st.measurements()
+                + (st.measurements() == 1 ? " Messpunkt): " : " Messpunkte): ")
+                + Faction.LUMEN.colored() + " " + ChatColor.WHITE + fmt(st.lumenAvg()) + ChatColor.GRAY + "  |  "
+                + Faction.WAECHTER.colored() + " " + ChatColor.WHITE + fmt(st.waechterAvg()));
+        sender.sendMessage(ChatColor.GRAY + "Felder: " + plugin.links().fields().size() + ", Links: "
+                + plugin.links().links().size() + ", Portale: " + plugin.portals().all().size());
+    }
+
+    private void cycles(CommandSender sender, String[] args) {
+        if (args.length < 2 || !args[1].equalsIgnoreCase("alt")) {
+            standing(sender);
+            return;
+        }
+        List<io.github.cndrbrbr.inigresso.service.ScoreService.CycleResult> last;
+        try {
+            last = plugin.scoreRepository().lastCycles(10);
+        } catch (java.sql.SQLException e) {
+            sender.sendMessage(ChatColor.RED + "Fehler beim Lesen der Ergebnisse.");
+            return;
+        }
+        if (last.isEmpty()) {
+            sender.sendMessage(ChatColor.GRAY + "Noch keine abgeschlossenen Zyklen.");
+            return;
+        }
+        sender.sendMessage(ChatColor.GOLD + "Letzte Zyklen:");
+        for (var r : last) {
+            sender.sendMessage(ChatColor.GRAY + DATE.format(java.time.Instant.ofEpochMilli(r.start())) + ": "
+                    + (r.winner() == null ? ChatColor.WHITE + "unentschieden" : r.winner().colored() + ChatColor.GRAY + " gewinnt")
+                    + ChatColor.GRAY + " (" + fmt(r.lumenAvg()) + " : " + fmt(r.waechterAvg()) + ")");
+        }
+    }
+
     private void give(CommandSender sender, String label, String[] args) {
         // admin geben <spieler> <resonator|burst|schluessel> <stufe|#portal> [anzahl]
         if (args.length < 5) {
@@ -431,6 +491,8 @@ public final class IgCommand implements TabExecutor {
             filter(out, plugin.gameInventory().summary(p).keySet().stream()
                     .filter(g -> g.type() == io.github.cndrbrbr.inigresso.model.GameItem.Type.KEY)
                     .map(g -> "#" + g.portalId()).toList(), args[1]);
+        } else if (args.length == 2 && args[0].equalsIgnoreCase("zyklus")) {
+            filter(out, List.of("alt"), args[1]);
         } else if (args.length == 2 && args[0].equalsIgnoreCase("aufladen")) {
             filter(out, plugin.portals().all().stream().map(p -> "#" + p.id()).toList(), args[1]);
         } else if (sender.hasPermission("inigresso.admin")) {

@@ -12,6 +12,8 @@ import io.github.cndrbrbr.inigresso.service.CombatService;
 import io.github.cndrbrbr.inigresso.service.EnergyService;
 import io.github.cndrbrbr.inigresso.service.HackService;
 import io.github.cndrbrbr.inigresso.service.LinkService;
+import io.github.cndrbrbr.inigresso.service.ScoreService;
+import io.github.cndrbrbr.inigresso.store.ScoreRepository;
 import io.github.cndrbrbr.inigresso.store.LinkRepository;
 import io.github.cndrbrbr.inigresso.render.NetworkRenderer;
 import io.github.cndrbrbr.inigresso.store.StateRepository;
@@ -61,6 +63,8 @@ public final class InigressoPlugin extends JavaPlugin {
     private PortalInteractListener portalInteract;
     private LinkService links;
     private NetworkRenderer network;
+    private ScoreService score;
+    private ScoreRepository scoreRepo;
     private final Clock clock = Clock.systemDefaultZone();
 
     @Override
@@ -92,12 +96,19 @@ public final class InigressoPlugin extends JavaPlugin {
                             settings.hackKeyChance()),
                     progress, hackRepo.loadSince(clock.millis() - HackService.WINDOW_MS));
             combat = new CombatService(portals, progress, bus, () -> settings.resonatorRadius());
+            StateRepository state = new StateRepository(database);
             LinkRepository linkRepo = new LinkRepository(database);
             linkRepo.bind(bus);
             links = new LinkService(portals, progress, bus, clock,
                     () -> new LinkService.Rules(settings.linkMaxRange(), settings.linkMaxOutgoing()),
                     linkRepo.loadLinks(), linkRepo.loadFields());
-            StateRepository state = new StateRepository(database);
+            scoreRepo = new ScoreRepository(database, state);
+            long storedCycle = scoreRepo.storedCycleStart();
+            score = new ScoreService(clock,
+                    () -> new ScoreService.Rules(settings.cycleStartDay(), settings.cycleLengthHours(),
+                            settings.measureMinutes()),
+                    links::influence, scoreRepo.sink(this::announceCycle), storedCycle,
+                    scoreRepo.measurementsSince(storedCycle));
             energy = new EnergyService(portals, progress, bus, clock,
                     () -> new EnergyService.DecayRules(settings.decayPercentPerDay(), settings.decayTime()),
                     state.getLong("last_decay", 0), t -> state.set("last_decay", Long.toString(t)));
@@ -142,11 +153,13 @@ public final class InigressoPlugin extends JavaPlugin {
         if (missed > 0) {
             getLogger().info("Energieverfall für " + missed + " Tag(e) nachgeholt.");
         }
+        score.tick();
         getServer().getScheduler().runTaskTimer(this, () -> {
             int days = energy.tick();
             if (days > 0) {
                 getLogger().info("Täglicher Energieverfall angewendet.");
             }
+            score.tick();
         }, 1200L, 1200L);
         // Nach /reload sind Spieler schon online.
         for (Player p : getServer().getOnlinePlayers()) {
@@ -213,6 +226,26 @@ public final class InigressoPlugin extends JavaPlugin {
 
     public GameInventory gameInventory() {
         return gameInventory;
+    }
+
+    private void announceCycle(ScoreService.CycleResult r) {
+        String msg = r.winner() == null
+                ? org.bukkit.ChatColor.GOLD + "[Inigresso] Zyklus beendet: unentschieden."
+                : org.bukkit.ChatColor.GOLD + "[Inigresso] Zyklus beendet: " + r.winner().colored()
+                        + org.bukkit.ChatColor.GOLD + " gewinnt!";
+        getServer().broadcastMessage(msg);
+        getServer().broadcastMessage(org.bukkit.ChatColor.GRAY + String.format(java.util.Locale.GERMANY,
+                "Durchschnittlicher Einfluss: Lumen %,.0f – Wächter %,.0f (%d Messpunkte)",
+                r.lumenAvg(), r.waechterAvg(), r.measurements()));
+        getLogger().info("Zyklus abgeschlossen: " + r);
+    }
+
+    public ScoreService score() {
+        return score;
+    }
+
+    public ScoreRepository scoreRepository() {
+        return scoreRepo;
     }
 
     public LinkService links() {

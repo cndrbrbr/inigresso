@@ -78,15 +78,17 @@ läuft. Regeln: [rules.md](rules.md), Aufbau: [architecture.md](architecture.md)
 
 ## Phase 7 – Wertung
 
-- [ ] Einfluss je Fraktion, stündliche Messpunkte
-- [ ] Wochenzyklus mit Ergebnis, Ankündigung, `/ig stand`, `/ig zyklus [alt]`
-- [ ] Nachholen verpasster Zyklusabschlüsse
+- [x] Einfluss je Fraktion, stündliche Messpunkte
+- [x] Wochenzyklus mit Ergebnis, Ankündigung, `/ig stand`, `/ig zyklus [alt]`
+- [x] Nachholen verpasster Zyklusabschlüsse
 - **Fertig, wenn:** Ein Testzyklus (verkürzt über Konfiguration) ergibt einen Gewinner.
+      ✔ 0.7.0: unit-getestet inkl. Kurzzyklus und Nachholen; auf Spigot 26.3 geprüft
+      (Nachholen zweier Zyklen, /ig stand, /ig zyklus alt).
 
 ## Phase 8 – Feinschliff und Betrieb
 
 - [ ] Spielanleitung `PLAYER_GUIDE.md` und `ADMIN_GUIDE.md`
-- [ ] Audit-Log für Admin-Eingriffe
+- [x] Audit-Log für Admin-Eingriffe (seit 0.2.0)
 - [ ] Leistungstest: 200 Portale, 500 Links, 20 Spieler
 - [ ] Balancing-Werte nach ersten Testrunden anpassen
 - [ ] GitHub-Release, Eintrag im Plugin-Katalog von minecraftHostingServer

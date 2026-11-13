@@ -30,3 +30,7 @@ player:
 
 cycle:
   start-day: MONDAY
+  # Zykluslänge in Stunden (168 = eine Woche) und Abstand der Messpunkte in Minuten.
+  # Zum Testen z. B. length-hours: 1 und measure-minutes: 5.
+  length-hours: 168
+  measure-minutes: 60
