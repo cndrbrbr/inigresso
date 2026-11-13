@@ -138,7 +138,7 @@ final class PortalCommands {
             sender.sendMessage(ChatColor.RED + "Welt " + b.world() + " ist nicht geladen.");
             return;
         }
-        player.teleport(new Location(w, b.x() + 0.5, b.y(), b.z() + 2.5, 180, 0));
+        player.teleport(safeSpot(w, b.x(), b.y(), b.z() + 2));
         sender.sendMessage(ChatColor.GRAY + "Vorschlag #" + p.get().id() + " „" + p.get().name()
                 + "“ – der Kern käme an die Stelle direkt vor dir.");
     }
@@ -296,10 +296,24 @@ final class PortalCommands {
                 }
                 World w = Bukkit.getWorld(p.core().world());
                 if (w != null) {
-                    player.teleport(new Location(w, p.core().x() + 0.5, p.core().y(), p.core().z() + 5.5, 180, 0));
+                    player.teleport(safeSpot(w, p.core().x(), p.core().y(), p.core().z() + 5));
                 }
             }
             default -> sender.sendMessage(ChatColor.RED + "Unbekannte Aktion: " + action);
         }
+    }
+
+    /**
+     * Freier Stehplatz in Spalte x/z: ab Höhe y nach oben die erste Stelle mit zwei Luftblöcken
+     * über festem Boden; sonst oberster Block + 1. Blick nach Norden (zum Kern).
+     */
+    static Location safeSpot(World w, int x, int y, int z) {
+        for (int yy = Math.max(y - 3, w.getMinHeight() + 1); yy < Math.min(y + 24, w.getMaxHeight() - 2); yy++) {
+            if (w.getBlockAt(x, yy - 1, z).getType().isSolid()
+                    && w.getBlockAt(x, yy, z).isPassable() && w.getBlockAt(x, yy + 1, z).isPassable()) {
+                return new Location(w, x + 0.5, yy, z + 0.5, 180, 0);
+            }
+        }
+        return new Location(w, x + 0.5, w.getHighestBlockYAt(x, z) + 1, z + 0.5, 180, 0);
     }
 }
