@@ -79,6 +79,7 @@ public final class IgCommand implements TabExecutor {
             case "portal" -> portalCommands.portalInfo(sender);
             case "inventar" -> inventory(sender);
             case "aufladen" -> recharge(sender, label, args);
+            case "link" -> link(sender, label, args);
             default -> sender.sendMessage(ChatColor.YELLOW + "/" + label + " " + sub.name
                     + " ist noch nicht fertig (kommt in Phase " + sub.phase + ").");
         }
@@ -274,6 +275,75 @@ public final class IgCommand implements TabExecutor {
         plugin.portalInteract().recharge(player, me.get(), portal.get());
     }
 
+    private void link(CommandSender sender, String label, String[] args) {
+        Optional<PlayerProfile> me = self(sender);
+        if (me.isEmpty()) {
+            return;
+        }
+        Player player = (Player) sender;
+        if (args.length < 2) {
+            sender.sendMessage(ChatColor.RED + "/" + label + " link <Zielportal|#id>" + ChatColor.GRAY
+                    + " – am Ausgangsportal stehen, Schlüssel des Ziels im Inventar.");
+            return;
+        }
+        var here = PortalCommands.pos(player.getLocation());
+        var from = plugin.portals().nearest(here, io.github.cndrbrbr.inigresso.service.LinkService.LINK_DISTANCE);
+        if (from.isEmpty()) {
+            sender.sendMessage(ChatColor.RED + "Stell dich direkt an das Portal, von dem der Link ausgehen soll.");
+            return;
+        }
+        String query = String.join(" ", java.util.Arrays.copyOfRange(args, 1, args.length));
+        var to = plugin.portals().find(query);
+        if (to.isEmpty()) {
+            sender.sendMessage(ChatColor.RED + "Portal " + query + " gibt es nicht.");
+            return;
+        }
+        var links = plugin.links();
+        var problem = links.check(me.get(), here, from.get(), to.get());
+        var key = io.github.cndrbrbr.inigresso.model.GameItem.key(to.get().id(), me.get().faction());
+        if (problem.isEmpty() && !plugin.gameInventory().has(player, key)) {
+            sender.sendMessage(ChatColor.RED + "Du brauchst einen Schlüssel von " + to.get().name()
+                    + ". Schlüssel bekommst du beim Hacken.");
+            return;
+        }
+        if (problem.isPresent()) {
+            sender.sendMessage(ChatColor.RED + linkProblem(problem.get(), from.get(), to.get()));
+            return;
+        }
+        plugin.gameInventory().consume(player, key);
+        var r = links.link(me.get(), here, from.get(), to.get());
+        player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_BEACON_POWER_SELECT, 1f, 0.8f);
+        sender.sendMessage(ChatColor.GREEN + "Link " + ChatColor.WHITE + from.get().name() + ChatColor.GREEN + " → "
+                + ChatColor.WHITE + to.get().name() + ChatColor.GREEN + " steht!");
+        for (var f : r.fields()) {
+            sender.sendMessage(me.get().faction().color() + "" + ChatColor.BOLD + "Neues Feld! " + ChatColor.RESET
+                    + ChatColor.WHITE + f.influence() + " Einfluss");
+            plugin.getServer().broadcastMessage(ChatColor.GOLD + "[Inigresso] " + me.get().faction().colored()
+                    + ChatColor.GRAY + " hat ein Feld mit " + ChatColor.WHITE + f.influence() + ChatColor.GRAY
+                    + " Einfluss aufgespannt (" + player.getName() + ").");
+        }
+    }
+
+    private static String linkProblem(io.github.cndrbrbr.inigresso.service.LinkService.Result r,
+                                      io.github.cndrbrbr.inigresso.model.Portal from,
+                                      io.github.cndrbrbr.inigresso.model.Portal to) {
+        return switch (r.problem()) {
+            case NO_FACTION -> "Wähle zuerst eine Fraktion.";
+            case NOT_AT_PORTAL -> "Stell dich direkt an das Ausgangsportal.";
+            case SOURCE_NOT_OWN -> from.name() + " gehört nicht deiner Fraktion.";
+            case SOURCE_NOT_FULL -> from.name() + " braucht alle 8 Resonatoren (jetzt " + r.detail() + ").";
+            case SAME_PORTAL -> "Ein Portal kann nicht mit sich selbst verlinkt werden.";
+            case TARGET_NOT_OWN -> to.name() + " gehört nicht deiner Fraktion.";
+            case OTHER_WORLD -> "Die Portale liegen in verschiedenen Welten.";
+            case TOO_FAR -> "Zu weit: " + r.detail() + " Blöcke. Rüste " + from.name() + " auf, um weiter zu reichen.";
+            case ALREADY_LINKED -> "Die beiden Portale sind schon verlinkt.";
+            case TOO_MANY_OUTGOING -> "Von " + from.name() + " gehen schon " + r.detail() + " Links aus.";
+            case CROSSES -> "Der Link würde " + r.detail() + " kreuzen.";
+            case SOURCE_IN_ENEMY_FIELD -> from.name() + " liegt unter einem gegnerischen Feld.";
+            case NO_KEY -> "Dir fehlt der Schlüssel von " + to.name() + ".";
+        };
+    }
+
     private void give(CommandSender sender, String label, String[] args) {
         // admin geben <spieler> <resonator|burst|schluessel> <stufe|#portal> [anzahl]
         if (args.length < 5) {
@@ -357,6 +427,10 @@ public final class IgCommand implements TabExecutor {
             }
         } else if (args.length == 2 && args[0].equalsIgnoreCase("fraktion")) {
             filter(out, List.of("lumen", "waechter"), args[1]);
+        } else if (args.length == 2 && args[0].equalsIgnoreCase("link") && sender instanceof Player p) {
+            filter(out, plugin.gameInventory().summary(p).keySet().stream()
+                    .filter(g -> g.type() == io.github.cndrbrbr.inigresso.model.GameItem.Type.KEY)
+                    .map(g -> "#" + g.portalId()).toList(), args[1]);
         } else if (args.length == 2 && args[0].equalsIgnoreCase("aufladen")) {
             filter(out, plugin.portals().all().stream().map(p -> "#" + p.id()).toList(), args[1]);
         } else if (sender.hasPermission("inigresso.admin")) {

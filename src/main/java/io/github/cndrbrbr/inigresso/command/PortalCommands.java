@@ -192,6 +192,27 @@ final class PortalCommands {
         if (p.capturedBy() != null) {
             sender.sendMessage(ChatColor.GRAY + "Erobert von: " + ChatColor.WHITE + name(p.capturedBy()));
         }
+        if (p.resonatorCount() > 0) {
+            StringBuilder res = new StringBuilder();
+            for (int i = 0; i < Portal.SLOTS; i++) {
+                var r = p.resonator(i);
+                res.append(ChatColor.GRAY).append(Portal.SLOT_NAMES[i]).append(":")
+                        .append(r == null ? ChatColor.DARK_GRAY + "–" : io.github.cndrbrbr.inigresso.item.ItemFactory
+                                .levelColor(r.level()) + "L" + r.level() + ChatColor.GRAY + "("
+                                + (100 * r.energy() / r.maxEnergy()) + "%)").append(" ");
+            }
+            sender.sendMessage(ChatColor.GRAY + "Stufe " + ChatColor.WHITE + p.level() + ChatColor.GRAY + ", Energie "
+                    + ChatColor.WHITE + io.github.cndrbrbr.inigresso.service.EnergyService.percent(p) + " %"
+                    + ChatColor.GRAY + ", Reichweite " + ChatColor.WHITE + plugin.links().range(p) + ChatColor.GRAY + " Blöcke");
+            sender.sendMessage(res.toString());
+        }
+        var links = plugin.links().linksOf(p.id());
+        if (!links.isEmpty()) {
+            sender.sendMessage(ChatColor.GRAY + "Links: " + ChatColor.WHITE + links.stream()
+                    .map(l -> plugin.portals().get(l.other(p.id())).map(Portal::name).orElse("?")
+                            + (l.from() == p.id() ? " →" : " ←"))
+                    .reduce((a, b) -> a + ", " + b).orElse(""));
+        }
         sender.sendMessage(ChatColor.GRAY + "Vorgeschlagen von: " + ChatColor.WHITE + name(p.proposer()));
     }
 

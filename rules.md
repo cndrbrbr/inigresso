@@ -144,7 +144,7 @@ außerhalb des Spiels nachgemacht werden.
 ## 6. Links
 
 - Ein Link ist eine gerade Verbindung zwischen zwei Portalen derselben Fraktion.
-- Um von Portal A nach Portal B zu linken:
+- Um von Portal A nach Portal B zu linken, gibt man `/ig link <B>` ein (Name oder `#ID`):
   - man steht an A (Radius 6 um den Kern),
   - A hat alle 8 Resonatoren,
   - man hat einen Schlüssel von B (der Schlüssel wird verbraucht),
@@ -153,11 +153,13 @@ außerhalb des Spiels nachgemacht werden.
     `64 × Portalstufe²` Blöcke (L1: 64, L2: 256, L3: 576, L4: 1024, L5: 1600),
     gekappt auf `link.max-range` (Standard 2000 Blöcke),
   - der Link kreuzt keinen bestehenden Link (egal welcher Fraktion), berechnet in der
-    X/Z-Ebene,
+    X/Z-Ebene; ein Link, der genau durch ein anderes Portal oder über einen anderen Link
+    läuft, zählt ebenfalls als Kreuzung,
   - A liegt nicht innerhalb eines gegnerischen Feldes,
   - von A gehen höchstens 8 Links aus (eingehende Links unbegrenzt).
 - Links werden als Partikelstrahl in Fraktionsfarbe angezeigt, wenn ein Spieler in
-  der Nähe ist.
+  der Nähe ist (nur der Abschnitt im Umkreis von 64 Blöcken).
+- `/ig portal` zeigt Resonatoren, Energie, Reichweite und Links eines Portals.
 - Ein Link verschwindet, sobald eines seiner beiden Portale neutral wird.
 
 ## 7. Felder
@@ -165,8 +167,9 @@ außerhalb des Spiels nachgemacht werden.
 - Drei Portale, die paarweise durch Links verbunden sind, bilden automatisch ein **Feld**.
 - Entsteht durch einen neuen Link mehr als ein mögliches Feld, werden auf jeder Seite
   des Links das größte mögliche Feld erzeugt (höchstens 2 Felder pro Link).
-- Felder werden auf der Karte und als Fraktionsfarbe in der Bossbar angezeigt, wenn ein
-  Spieler darunter steht.
+- Wer unter einem Feld steht, sieht eine Bossbar in Fraktionsfarbe mit Einfluss und Zahl
+  der Schichten. Neue Felder werden allen Spielern im Chat gemeldet. (Anzeige auf der
+  Karte: später, siehe implement.md.)
 - Ein Feld zerfällt, sobald einer seiner drei Links verschwindet.
 
 ## 8. Wertung

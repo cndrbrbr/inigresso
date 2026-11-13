@@ -66,12 +66,15 @@ läuft. Regeln: [rules.md](rules.md), Aufbau: [architecture.md](architecture.md)
 
 ## Phase 6 – Links und Felder
 
-- [ ] `LinkService` mit allen Bedingungen aus rules.md §6, Rasterindex für Kreuzungen
-- [ ] Partikeldarstellung
-- [ ] `FieldService`: Felder bei neuem Link, Abbau bei Linkverlust
-- [ ] Bossbar beim Stehen im Feld
+- [x] `LinkService` mit allen Bedingungen aus rules.md §6, Rasterindex für Kreuzungen
+- [x] Partikeldarstellung
+- [x] `FieldService`: Felder bei neuem Link, Abbau bei Linkverlust
+- [x] Bossbar beim Stehen im Feld
 - **Fertig, wenn:** Drei Portale ergeben ein Feld; Zerstören eines Portals entfernt Links
-      und Feld.
+      und Feld. ✔ 0.6.0: unit-getestet (Reichweite, alle Bedingungen, Kreuzung, größtes Feld je
+      Seite, Abbau); Laden und Abbau auf Spigot 26.3 geprüft. Partikel und Bossbar mit echtem
+      Spieler noch zu prüfen. Kreuzungsprüfung ohne Rasterindex (alle Links), reicht bis
+      einige tausend Links.
 
 ## Phase 7 – Wertung
 

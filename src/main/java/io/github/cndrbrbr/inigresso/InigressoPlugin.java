@@ -11,6 +11,9 @@ import io.github.cndrbrbr.inigresso.listener.PortalInteractListener;
 import io.github.cndrbrbr.inigresso.service.CombatService;
 import io.github.cndrbrbr.inigresso.service.EnergyService;
 import io.github.cndrbrbr.inigresso.service.HackService;
+import io.github.cndrbrbr.inigresso.service.LinkService;
+import io.github.cndrbrbr.inigresso.store.LinkRepository;
+import io.github.cndrbrbr.inigresso.render.NetworkRenderer;
 import io.github.cndrbrbr.inigresso.store.StateRepository;
 import io.github.cndrbrbr.inigresso.store.HackRepository;
 import java.util.random.RandomGenerator;
@@ -56,6 +59,8 @@ public final class InigressoPlugin extends JavaPlugin {
     private CombatService combat;
     private EnergyService energy;
     private PortalInteractListener portalInteract;
+    private LinkService links;
+    private NetworkRenderer network;
     private final Clock clock = Clock.systemDefaultZone();
 
     @Override
@@ -87,6 +92,11 @@ public final class InigressoPlugin extends JavaPlugin {
                             settings.hackKeyChance()),
                     progress, hackRepo.loadSince(clock.millis() - HackService.WINDOW_MS));
             combat = new CombatService(portals, progress, bus, () -> settings.resonatorRadius());
+            LinkRepository linkRepo = new LinkRepository(database);
+            linkRepo.bind(bus);
+            links = new LinkService(portals, progress, bus, clock,
+                    () -> new LinkService.Rules(settings.linkMaxRange(), settings.linkMaxOutgoing()),
+                    linkRepo.loadLinks(), linkRepo.loadFields());
             StateRepository state = new StateRepository(database);
             energy = new EnergyService(portals, progress, bus, clock,
                     () -> new EnergyService.DecayRules(settings.decayPercentPerDay(), settings.decayTime()),
@@ -96,7 +106,8 @@ public final class InigressoPlugin extends JavaPlugin {
                             settings.proposalMinLevel(), settings.proposalMaxOpen()),
                     portals, progress, profiles, portalRepo.loadProposals());
             getLogger().info(profiles.all().size() + " Spielerprofile, " + portals.all().size() + " Portale, "
-                    + proposals.open().size() + " offene Vorschläge geladen.");
+                    + proposals.open().size() + " offene Vorschläge, " + links.links().size() + " Links, "
+                    + links.fields().size() + " Felder geladen.");
         } catch (SQLException e) {
             getLogger().log(Level.SEVERE, "Datenbank konnte nicht geöffnet werden – Inigresso wird deaktiviert.", e);
             if (database != null) {
@@ -123,6 +134,9 @@ public final class InigressoPlugin extends JavaPlugin {
                 new ItemGuardListener(itemFactory, gameInventory, profiles, bus), this);
         getServer().getPluginManager().registerEvents(
                 new PlayerConnectionListener(profiles, teams, messages, clock, bus), this);
+        network = new NetworkRenderer(links, portals);
+        getServer().getScheduler().runTaskTimer(this, network::drawLinks, 10L, 10L);
+        getServer().getScheduler().runTaskTimer(this, network::updateBars, 20L, 20L);
         // Verfall: verpasste Tage sofort nachholen, dann jede Minute prüfen.
         int missed = energy.tick();
         if (missed > 0) {
@@ -148,6 +162,9 @@ public final class InigressoPlugin extends JavaPlugin {
     public void onDisable() {
         if (portalRenderer != null) {
             portalRenderer.removeAll();
+        }
+        if (network != null) {
+            network.removeAll();
         }
         if (database != null) {
             database.close();
@@ -196,6 +213,10 @@ public final class InigressoPlugin extends JavaPlugin {
 
     public GameInventory gameInventory() {
         return gameInventory;
+    }
+
+    public LinkService links() {
+        return links;
     }
 
     public PortalInteractListener portalInteract() {

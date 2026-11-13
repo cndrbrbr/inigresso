@@ -2,6 +2,8 @@ package io.github.cndrbrbr.inigresso.event;
 
 import io.github.cndrbrbr.inigresso.model.BlockPos;
 import io.github.cndrbrbr.inigresso.model.Faction;
+import io.github.cndrbrbr.inigresso.model.Field;
+import io.github.cndrbrbr.inigresso.model.Link;
 import io.github.cndrbrbr.inigresso.model.PlayerProfile;
 import io.github.cndrbrbr.inigresso.model.Portal;
 import io.github.cndrbrbr.inigresso.model.Proposal;
@@ -47,5 +49,17 @@ public sealed interface GameEvent {
 
     /** Ein Spieler hat ein Portal gehackt (für Abklingzeit, wird gespeichert). */
     record Hacked(UUID player, int portalId, long timestamp) implements GameEvent {
+    }
+
+    record LinkCreated(Link link) implements GameEvent {
+    }
+
+    record LinkRemoved(Link link) implements GameEvent {
+    }
+
+    record FieldCreated(Field field) implements GameEvent {
+    }
+
+    record FieldRemoved(Field field) implements GameEvent {
     }
 }
