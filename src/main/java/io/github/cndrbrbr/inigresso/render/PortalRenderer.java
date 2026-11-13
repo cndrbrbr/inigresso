@@ -237,10 +237,17 @@ public final class PortalRenderer implements Listener {
         }
         if (f != Faction.NEUTRAL) {
             sb.append('\n').append(ChatColor.WHITE).append("Stufe ").append(p.level())
-                    .append(ChatColor.GRAY).append(" · ").append(p.resonatorCount()).append("/8 Resonatoren");
+                    .append(ChatColor.GRAY).append(" · ").append(p.resonatorCount()).append("/8 Resonatoren")
+                    .append(ChatColor.GRAY).append(" · ").append(energyColor(p))
+                    .append(io.github.cndrbrbr.inigresso.service.EnergyService.percent(p)).append(" %");
         }
         sb.append('\n').append(ChatColor.DARK_GRAY).append('#').append(p.id());
         return sb.toString();
+    }
+
+    private static ChatColor energyColor(Portal p) {
+        int pct = io.github.cndrbrbr.inigresso.service.EnergyService.percent(p);
+        return pct >= 60 ? ChatColor.GREEN : pct >= 30 ? ChatColor.YELLOW : ChatColor.RED;
     }
 
     private static Block block(BlockPos pos) {

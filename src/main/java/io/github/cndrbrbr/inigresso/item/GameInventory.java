@@ -92,6 +92,16 @@ public final class GameInventory {
         return false;
     }
 
+    public boolean has(Player p, GameItem wanted) {
+        for (ItemStack s : p.getInventory().getContents()) {
+            Optional<GameItem> g = items.read(s);
+            if (g.isPresent() && g.get().equals(wanted)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /** Entfernt alle Spielgegenstände einer anderen Fraktion. Rückgabe: Anzahl entfernter Stücke. */
     public int purgeForeign(Player p, Faction keep) {
         int removed = 0;

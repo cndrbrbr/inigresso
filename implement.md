@@ -56,11 +56,13 @@ läuft. Regeln: [rules.md](rules.md), Aufbau: [architecture.md](architecture.md)
 
 ## Phase 5 – Angriff und Energie
 
-- [ ] Burst: Radius, Schaden mit Abstandsfaktor, Zerstörung, Neutralisierung
-- [ ] Aufladen am Kern und per Schlüssel (XP-Kosten)
-- [ ] Täglicher Verfall inkl. Nachholen nach Ausfall
+- [x] Burst: Radius, Schaden mit Abstandsfaktor, Zerstörung, Neutralisierung
+- [x] Aufladen am Kern und per Schlüssel (XP-Kosten)
+- [x] Täglicher Verfall inkl. Nachholen nach Ausfall
 - **Fertig, wenn:** Ein Portal lässt sich zerstören und von der anderen Fraktion
-      übernehmen.
+      übernehmen. ✔ 0.5.0: unit-getestet (Schaden, Zerstören, Neutral, Verfall inkl. Nachholen,
+      Aufladen); Energieanzeige und Migration auf Spigot 26.3 geprüft. Bursts und Aufladen mit
+      echtem Spieler noch zu prüfen.
 
 ## Phase 6 – Links und Felder
 

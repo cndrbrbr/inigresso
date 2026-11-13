@@ -24,7 +24,7 @@ import java.util.logging.Logger;
 public final class Database implements AutoCloseable {
 
     /** Migrationen in Reihenfolge, Ressourcen unter /db/. Neue nur anhängen. */
-    static final List<String> MIGRATIONS = List.of("V1__init.sql", "V2__portal_proposer.sql");
+    static final List<String> MIGRATIONS = List.of("V1__init.sql", "V2__portal_proposer.sql", "V3__state.sql");
 
     /** Ein Schreibauftrag, läuft im Hintergrund-Thread in einer eigenen Transaktion. */
     @FunctionalInterface

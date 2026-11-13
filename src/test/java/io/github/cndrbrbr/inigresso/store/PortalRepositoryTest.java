@@ -62,7 +62,7 @@ class PortalRepositoryTest {
             messages.add(anna, "hallo", 1);
         }
         try (Database db = new Database(file, LOG)) {
-            assertEquals(2, db.schemaVersion());
+            assertEquals(Database.MIGRATIONS.size(), db.schemaVersion());
             PortalRepository repo = new PortalRepository(db);
             List<Portal> portals = repo.loadPortals();
             assertEquals(1, portals.size());

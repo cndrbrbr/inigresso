@@ -124,15 +124,22 @@ außerhalb des Spiels nachgemacht werden.
 
 - Jeder Resonator hat Energie: Stufe 1: 1000, 2: 1500, 3: 2000, 4: 2500, 5: 3000,
   6: 4000, 7: 5000, 8: 6000.
-- Ein **Burst** wirkt im Radius 2 + 2 × Stufe um den Werfer, Schaden
+- Ein **Burst** wird mit Rechtsklick (in die Luft oder auf einen Block) gezündet und
+  verbraucht. Er wirkt im Radius 2 + 2 × Stufe um den Werfer, Schaden
   100 × Stufe × Abstandsfaktor (1 direkt daneben, 0 am Rand), nur auf gegnerische
-  Resonatoren.
+  Resonatoren und nur bis 6 Blöcke Höhenunterschied zum Portalkern. Der Abstand wird zum
+  jeweiligen Resonator-Platz gemessen, man sollte also nah an die Resonatoren heran.
 - Ein Resonator mit 0 Energie wird zerstört.
-- **Verfall**: Jeden Tag um 03:00 verlieren alle Resonatoren 15 % ihrer maximalen
-  Energie. Ein unbetreutes Portal stirbt also nach etwa einer Woche.
-- **Aufladen**: Mit `/ig aufladen <Portal>` und einem Schlüssel des Portals, oder
-  direkt am Kern mit Rechtsklick + Schleichen, kann man eigene Portale aufladen.
-  Kosten: XP-Punkte des Spielers (1 XP = 10 Energie).
+- **Verfall**: Jeden Tag um 03:00 (Serverzeit) verlieren alle Resonatoren 15 % ihrer
+  maximalen Energie. Ein unbetreutes Portal stirbt also nach etwa einer Woche. War der
+  Server zu dieser Zeit aus, wird der Verfall beim nächsten Start nachgeholt. Beim allerersten
+  Start verfällt nichts rückwirkend.
+- Stirbt der letzte Resonator, wird das Portal neutral.
+- **Aufladen**: Mit `/ig aufladen <Portal>` und einem Schlüssel des Portals (er wird nicht
+  verbraucht), oder direkt am Kern mit Schleichen + Rechtsklick, kann man eigene Portale
+  aufladen. Kosten: XP-Punkte des Spielers (1 XP = 10 Energie), höchstens 1000 Energie
+  pro Vorgang, die schwächsten Resonatoren zuerst.
+- Die Anzeige über dem Kern zeigt die Energie des Portals in Prozent.
 
 ## 6. Links
 

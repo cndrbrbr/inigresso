@@ -78,6 +78,7 @@ public final class IgCommand implements TabExecutor {
             case "ablehnen" -> portalCommands.reject(sender, label, args);
             case "portal" -> portalCommands.portalInfo(sender);
             case "inventar" -> inventory(sender);
+            case "aufladen" -> recharge(sender, label, args);
             default -> sender.sendMessage(ChatColor.YELLOW + "/" + label + " " + sub.name
                     + " ist noch nicht fertig (kommt in Phase " + sub.phase + ").");
         }
@@ -248,6 +249,31 @@ public final class IgCommand implements TabExecutor {
         });
     }
 
+    private void recharge(CommandSender sender, String label, String[] args) {
+        Optional<PlayerProfile> me = self(sender);
+        if (me.isEmpty()) {
+            return;
+        }
+        Player player = (Player) sender;
+        if (args.length < 2) {
+            sender.sendMessage(ChatColor.RED + "/" + label + " aufladen <Portal|#id>" + ChatColor.GRAY
+                    + " – braucht einen Schlüssel des Portals. Direkt am Portal: Schleichen + Rechtsklick auf den Kern.");
+            return;
+        }
+        String query = String.join(" ", java.util.Arrays.copyOfRange(args, 1, args.length));
+        var portal = plugin.portals().find(query);
+        if (portal.isEmpty()) {
+            sender.sendMessage(ChatColor.RED + "Portal " + query + " gibt es nicht.");
+            return;
+        }
+        if (!me.get().hasFaction() || !plugin.gameInventory().has(player,
+                io.github.cndrbrbr.inigresso.model.GameItem.key(portal.get().id(), me.get().faction()))) {
+            sender.sendMessage(ChatColor.RED + "Du brauchst einen Schlüssel von " + portal.get().name() + ".");
+            return;
+        }
+        plugin.portalInteract().recharge(player, me.get(), portal.get());
+    }
+
     private void give(CommandSender sender, String label, String[] args) {
         // admin geben <spieler> <resonator|burst|schluessel> <stufe|#portal> [anzahl]
         if (args.length < 5) {
@@ -331,6 +357,8 @@ public final class IgCommand implements TabExecutor {
             }
         } else if (args.length == 2 && args[0].equalsIgnoreCase("fraktion")) {
             filter(out, List.of("lumen", "waechter"), args[1]);
+        } else if (args.length == 2 && args[0].equalsIgnoreCase("aufladen")) {
+            filter(out, plugin.portals().all().stream().map(p -> "#" + p.id()).toList(), args[1]);
         } else if (sender.hasPermission("inigresso.admin")) {
             if (args.length == 2 && args[0].equalsIgnoreCase("info")) {
                 filter(out, onlineNames(), args[1]);

@@ -8,7 +8,10 @@ import io.github.cndrbrbr.inigresso.item.ItemFactory;
 import io.github.cndrbrbr.inigresso.listener.ItemGuardListener;
 import io.github.cndrbrbr.inigresso.listener.PlayerConnectionListener;
 import io.github.cndrbrbr.inigresso.listener.PortalInteractListener;
+import io.github.cndrbrbr.inigresso.service.CombatService;
+import io.github.cndrbrbr.inigresso.service.EnergyService;
 import io.github.cndrbrbr.inigresso.service.HackService;
+import io.github.cndrbrbr.inigresso.store.StateRepository;
 import io.github.cndrbrbr.inigresso.store.HackRepository;
 import java.util.random.RandomGenerator;
 import io.github.cndrbrbr.inigresso.listener.ProtectionListener;
@@ -50,6 +53,9 @@ public final class InigressoPlugin extends JavaPlugin {
     private PortalRenderer portalRenderer;
     private HackService hacks;
     private GameInventory gameInventory;
+    private CombatService combat;
+    private EnergyService energy;
+    private PortalInteractListener portalInteract;
     private final Clock clock = Clock.systemDefaultZone();
 
     @Override
@@ -80,6 +86,11 @@ public final class InigressoPlugin extends JavaPlugin {
                     () -> new HackService.Rules(settings.hackCooldownMinutes(), settings.hackMaxPer4h(),
                             settings.hackKeyChance()),
                     progress, hackRepo.loadSince(clock.millis() - HackService.WINDOW_MS));
+            combat = new CombatService(portals, progress, bus, () -> settings.resonatorRadius());
+            StateRepository state = new StateRepository(database);
+            energy = new EnergyService(portals, progress, bus, clock,
+                    () -> new EnergyService.DecayRules(settings.decayPercentPerDay(), settings.decayTime()),
+                    state.getLong("last_decay", 0), t -> state.set("last_decay", Long.toString(t)));
             proposals = new ProposalService(bus, clock,
                     () -> new ProposalService.Rules(settings.worlds(), settings.portalMinDistance(),
                             settings.proposalMinLevel(), settings.proposalMaxOpen()),
@@ -106,12 +117,23 @@ public final class InigressoPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new ProtectionListener(portals), this);
         ItemFactory itemFactory = new ItemFactory(this, portals);
         gameInventory = new GameInventory(itemFactory, () -> settings.playerMaxItems());
-        getServer().getPluginManager().registerEvents(
-                new PortalInteractListener(portals, hacks, profiles, itemFactory, gameInventory), this);
+        portalInteract = new PortalInteractListener(portals, hacks, profiles, itemFactory, gameInventory, combat, energy);
+        getServer().getPluginManager().registerEvents(portalInteract, this);
         getServer().getPluginManager().registerEvents(
                 new ItemGuardListener(itemFactory, gameInventory, profiles, bus), this);
         getServer().getPluginManager().registerEvents(
                 new PlayerConnectionListener(profiles, teams, messages, clock, bus), this);
+        // Verfall: verpasste Tage sofort nachholen, dann jede Minute prüfen.
+        int missed = energy.tick();
+        if (missed > 0) {
+            getLogger().info("Energieverfall für " + missed + " Tag(e) nachgeholt.");
+        }
+        getServer().getScheduler().runTaskTimer(this, () -> {
+            int days = energy.tick();
+            if (days > 0) {
+                getLogger().info("Täglicher Energieverfall angewendet.");
+            }
+        }, 1200L, 1200L);
         // Nach /reload sind Spieler schon online.
         for (Player p : getServer().getOnlinePlayers()) {
             teams.apply(profiles.join(p.getUniqueId(), p.getName()));
@@ -174,6 +196,10 @@ public final class InigressoPlugin extends JavaPlugin {
 
     public GameInventory gameInventory() {
         return gameInventory;
+    }
+
+    public PortalInteractListener portalInteract() {
+        return portalInteract;
     }
 
     /** Admin-Eingriffe protokollieren (rules.md §11). */
