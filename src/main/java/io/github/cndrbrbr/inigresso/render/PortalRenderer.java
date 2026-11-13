@@ -73,6 +73,7 @@ public final class PortalRenderer implements Listener {
         for (Portal p : portals.all()) {
             World w = Bukkit.getWorld(p.core().world());
             if (w != null && w.isChunkLoaded(p.core().x() >> 4, p.core().z() >> 4)) {
+                placeCore(p);
                 updateLabel(p);
                 updateResonators(p);
             }
@@ -107,6 +108,8 @@ public final class PortalRenderer implements Listener {
             }
         }
         for (Portal p : portals.coresInChunk(c.getWorld().getName(), c.getX(), c.getZ())) {
+            // Fehlender Kern (z. B. importierte Portale, WorldEdit) wird ergänzt.
+            placeCore(p);
             updateLabel(p);
             updateResonators(p);
         }
