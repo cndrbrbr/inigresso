@@ -38,7 +38,22 @@ public final class ProtectionListener implements Listener {
         return portals.protecting(new BlockPos(b.getWorld().getName(), b.getX(), b.getY(), b.getZ())).isPresent();
     }
 
+    /** Kernblock oder der Block direkt darunter – für niemanden veränderbar, auch nicht mit Bypass. */
+    private boolean isCore(Block b) {
+        String w = b.getWorld().getName();
+        BlockPos at = new BlockPos(w, b.getX(), b.getY(), b.getZ());
+        BlockPos above = new BlockPos(w, b.getX(), b.getY() + 1, b.getZ());
+        return portals.protecting(at).filter(p -> p.core().equals(at)).isPresent()
+                || portals.protecting(above).filter(p -> p.core().equals(above)).isPresent();
+    }
+
     private void guard(Player player, Block block, Cancellable event) {
+        if (isCore(block)) {
+            event.setCancelled(true);
+            player.sendMessage(ChatColor.RED + "Portalkerne lassen sich nicht abbauen."
+                    + (player.hasPermission(BYPASS) ? " Entfernen: /ig admin portal loeschen" : ""));
+            return;
+        }
         if (isProtected(block) && !player.hasPermission(BYPASS)) {
             event.setCancelled(true);
             player.sendMessage(ChatColor.RED + "Dieser Bereich gehört zu einem Portal und ist geschützt.");
