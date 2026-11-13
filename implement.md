@@ -43,13 +43,16 @@ läuft. Regeln: [rules.md](rules.md), Aufbau: [architecture.md](architecture.md)
 
 ## Phase 4 – Gegenstände, Resonatoren, Hacken
 
-- [ ] Markierte Items (PDC), nicht craftbar, kein Drop beim Tod, Spiel-Inventar
-- [ ] Resonator setzen (Rechtsklick auf Platz), Aufrüsten, Stufenlimits pro Spieler
-- [ ] Erobern eines neutralen Portals, Portalstufe, Anzeige der Resonatorblöcke
-- [ ] Hacken mit Abklingzeit, Loot, Schlüsselchance
-- [ ] `/ig admin geben` für Tests
+- [x] Markierte Items (PDC), nicht craftbar, kein Drop beim Tod, `/ig inventar` als Übersicht
+- [x] Resonator setzen (Rechtsklick auf den Kern), Aufrüsten, Stufenlimits pro Spieler
+- [x] Erobern eines neutralen Portals, Portalstufe, Anzeige der Resonatorblöcke
+- [x] Hacken mit Abklingzeit, Loot, Schlüsselchance
+- [x] `/ig admin geben` für Tests
 - **Fertig, wenn:** Zwei Spieler verschiedener Fraktionen können Portale erobern und
-      hacken.
+      hacken. ✔ 0.4.0: unit-getestet; Resonator-Anzeige auf Spigot 26.3 geprüft. Setzen,
+      Hacken und Item-Schutz mit echtem Spieler noch zu prüfen.
+- Bekannt: Beim Tod einbehaltene Gegenstände gehen verloren, wenn der Server vor dem
+  Wiederbeleben neu startet.
 
 ## Phase 5 – Angriff und Energie
 

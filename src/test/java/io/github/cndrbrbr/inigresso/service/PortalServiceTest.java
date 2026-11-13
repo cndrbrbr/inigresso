@@ -21,7 +21,7 @@ class PortalServiceTest {
     private PortalService service(int radius, List<Portal> loaded) {
         GameEventBus bus = new GameEventBus(Logger.getLogger("test"));
         bus.subscribe(GameEvent.class, events::add);
-        return new PortalService(bus, Clock.systemUTC(), () -> radius, loaded);
+        return new PortalService(bus, Clock.systemUTC(), () -> radius, new PlayerProgressService(bus), loaded);
     }
 
     private static BlockPos at(int x, int y, int z) {

@@ -38,7 +38,7 @@ class ProposalServiceTest {
         bus.subscribe(GameEvent.class, events::add);
         profiles = new ProfileService(bus, List.of());
         PlayerProgressService progress = new PlayerProgressService(bus);
-        portals = new PortalService(bus, clock, () -> 4, List.of());
+        portals = new PortalService(bus, clock, () -> 4, progress, List.of());
         proposals = new ProposalService(bus, clock,
                 () -> new ProposalService.Rules(List.of("world"), 48, 2, 3), portals, progress, profiles, List.of());
         anna = profiles.join(UUID.randomUUID(), "anna");

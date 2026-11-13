@@ -4,7 +4,9 @@ import io.github.cndrbrbr.inigresso.event.GameEvent;
 import io.github.cndrbrbr.inigresso.event.GameEventBus;
 import io.github.cndrbrbr.inigresso.model.BlockPos;
 import io.github.cndrbrbr.inigresso.model.Faction;
+import io.github.cndrbrbr.inigresso.model.PlayerProfile;
 import io.github.cndrbrbr.inigresso.model.Portal;
+import io.github.cndrbrbr.inigresso.model.Resonator;
 import java.time.Clock;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -19,8 +21,8 @@ import java.util.UUID;
 import java.util.function.IntSupplier;
 
 /**
- * Portale im Speicher mit Chunk-Index für den Schutz (rules.md §2). Resonatoren, Erobern
- * und Verfall kommen in Phase 4/5 dazu.
+ * Portale im Speicher mit Chunk-Index für den Schutz, Resonatoren setzen und Erobern
+ * (rules.md §2). Angriff und Verfall kommen in Phase 5 dazu.
  */
 public final class PortalService {
 
@@ -30,12 +32,27 @@ public final class PortalService {
     private final GameEventBus bus;
     private final Clock clock;
     private final IntSupplier protectRadius;
+    private final PlayerProgressService progress;
     private int nextId;
 
-    public PortalService(GameEventBus bus, Clock clock, IntSupplier protectRadius, Collection<Portal> loaded) {
+    public enum DeployOutcome {
+        DEPLOYED, UPGRADED, CAPTURED,
+        NO_FACTION, ENEMY_PORTAL, LEVEL_TOO_HIGH, LIMIT_REACHED, NOTHING_TO_UPGRADE
+    }
+
+    public record DeployResult(DeployOutcome outcome, int slot) {
+        public boolean ok() {
+            return outcome == DeployOutcome.DEPLOYED || outcome == DeployOutcome.UPGRADED
+                    || outcome == DeployOutcome.CAPTURED;
+        }
+    }
+
+    public PortalService(GameEventBus bus, Clock clock, IntSupplier protectRadius, PlayerProgressService progress,
+                         Collection<Portal> loaded) {
         this.bus = bus;
         this.clock = clock;
         this.protectRadius = protectRadius;
+        this.progress = progress;
         for (Portal p : loaded) {
             portals.put(p.id(), p);
             nextId = Math.max(nextId, p.id());
@@ -70,13 +87,67 @@ public final class PortalService {
         }
     }
 
-    /** Setzt das Portal neutral. Ab Phase 4 werden dabei auch die Resonatoren entfernt. */
+    /** Setzt das Portal neutral und entfernt alle Resonatoren. */
     public void neutralize(Portal p) {
-        if (p.owner() == Faction.NEUTRAL) {
+        if (p.owner() == Faction.NEUTRAL && p.resonatorCount() == 0) {
             return;
         }
+        p.clearResonators();
         p.setOwner(Faction.NEUTRAL, null, 0);
         bus.publish(new GameEvent.PortalChanged(p, p.core(), false));
+    }
+
+    /**
+     * Resonator der Stufe level setzen (rules.md §2.3/2.4): zuerst auf einen freien Platz,
+     * sonst wird der schwächste Resonator unter dieser Stufe ersetzt (Aufrüsten).
+     */
+    public DeployResult deploy(PlayerProfile by, Portal p, int level) {
+        if (!by.hasFaction()) {
+            return new DeployResult(DeployOutcome.NO_FACTION, -1);
+        }
+        if (p.owner() != Faction.NEUTRAL && p.owner() != by.faction()) {
+            return new DeployResult(DeployOutcome.ENEMY_PORTAL, -1);
+        }
+        if (level > PlayerProgressService.levelFor(by.ap())) {
+            return new DeployResult(DeployOutcome.LEVEL_TOO_HIGH, -1);
+        }
+        if (p.countBy(by.uuid(), level) >= Portal.perPlayerLimit(level)) {
+            return new DeployResult(DeployOutcome.LIMIT_REACHED, -1);
+        }
+        int slot = -1;
+        for (int i = 0; i < Portal.SLOTS; i++) {
+            if (p.resonator(i) == null) {
+                slot = i;
+                break;
+            }
+        }
+        boolean upgrade = false;
+        if (slot < 0) {
+            int lowest = level;
+            for (int i = 0; i < Portal.SLOTS; i++) {
+                if (p.resonator(i).level() < lowest) {
+                    lowest = p.resonator(i).level();
+                    slot = i;
+                }
+            }
+            if (slot < 0) {
+                return new DeployResult(DeployOutcome.NOTHING_TO_UPGRADE, -1);
+            }
+            upgrade = true;
+        }
+        boolean capture = p.owner() == Faction.NEUTRAL;
+        if (capture) {
+            p.setOwner(by.faction(), by.uuid(), clock.millis());
+        }
+        p.setResonator(slot, Resonator.full(level, by.uuid()));
+        bus.publish(new GameEvent.PortalChanged(p, p.core(), false));
+        if (capture) {
+            progress.award(by, PlayerProgressService.Action.CAPTURE_PORTAL);
+        }
+        progress.award(by, upgrade ? PlayerProgressService.Action.UPGRADE_RESONATOR
+                : PlayerProgressService.Action.DEPLOY_RESONATOR);
+        DeployOutcome o = capture ? DeployOutcome.CAPTURED : upgrade ? DeployOutcome.UPGRADED : DeployOutcome.DEPLOYED;
+        return new DeployResult(o, slot);
     }
 
     public Optional<Portal> get(int id) {

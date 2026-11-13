@@ -5,9 +5,18 @@ import io.github.cndrbrbr.inigresso.event.GameEventBus;
 import io.github.cndrbrbr.inigresso.model.BlockPos;
 import io.github.cndrbrbr.inigresso.model.Faction;
 import io.github.cndrbrbr.inigresso.model.Portal;
+import io.github.cndrbrbr.inigresso.model.Resonator;
 import io.github.cndrbrbr.inigresso.service.PortalService;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.function.IntSupplier;
+import java.util.function.Supplier;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.entity.BlockDisplay;
+import org.bukkit.util.Transformation;
+import org.joml.AxisAngle4f;
+import org.joml.Vector3f;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
@@ -33,9 +42,14 @@ public final class PortalRenderer implements Listener {
 
     private final PortalService portals;
     private final Map<Integer, TextDisplay> labels = new HashMap<>();
+    private final Map<Integer, BlockDisplay[]> resonators = new HashMap<>();
+    private final IntSupplier resonatorRadius;
+    private final Supplier<List<Material>> resonatorBlocks;
 
-    public PortalRenderer(PortalService portals) {
+    public PortalRenderer(PortalService portals, IntSupplier resonatorRadius, Supplier<List<Material>> resonatorBlocks) {
         this.portals = portals;
+        this.resonatorRadius = resonatorRadius;
+        this.resonatorBlocks = resonatorBlocks;
     }
 
     public void bind(GameEventBus bus) {
@@ -45,9 +59,11 @@ public final class PortalRenderer implements Listener {
             }
             placeCore(e.portal());
             updateLabel(e.portal());
+            updateResonators(e.portal());
         });
         bus.subscribe(GameEvent.PortalRemoved.class, e -> {
             removeLabel(e.portal().id());
+            removeResonators(e.portal().id());
             clearCore(e.portal().core());
         });
     }
@@ -58,6 +74,7 @@ public final class PortalRenderer implements Listener {
             World w = Bukkit.getWorld(p.core().world());
             if (w != null && w.isChunkLoaded(p.core().x() >> 4, p.core().z() >> 4)) {
                 updateLabel(p);
+                updateResonators(p);
             }
         }
     }
@@ -65,18 +82,33 @@ public final class PortalRenderer implements Listener {
     public void removeAll() {
         labels.values().forEach(Entity::remove);
         labels.clear();
+        for (BlockDisplay[] arr : resonators.values()) {
+            for (BlockDisplay d : arr) {
+                if (d != null) {
+                    d.remove();
+                }
+            }
+        }
+        resonators.clear();
+    }
+
+    /** Nach reload (Radius/Blöcke geändert): alles neu aufbauen. */
+    public void refreshAll() {
+        removeAll();
+        showLoaded();
     }
 
     @EventHandler
     public void onChunkLoad(ChunkLoadEvent event) {
         Chunk c = event.getChunk();
         for (Entity e : c.getEntities()) {
-            if (e.getScoreboardTags().contains(TAG) && !labels.containsValue(e)) {
+            if (e.getScoreboardTags().contains(TAG) && !isTracked(e)) {
                 e.remove();
             }
         }
         for (Portal p : portals.coresInChunk(c.getWorld().getName(), c.getX(), c.getZ())) {
             updateLabel(p);
+            updateResonators(p);
         }
     }
 
@@ -119,6 +151,72 @@ public final class PortalRenderer implements Listener {
         label.setText(text(p));
     }
 
+    private boolean isTracked(Entity e) {
+        if (labels.containsValue(e)) {
+            return true;
+        }
+        for (BlockDisplay[] arr : resonators.values()) {
+            for (BlockDisplay d : arr) {
+                if (e.equals(d)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Resonatoren als schwebende, halb große Blöcke im Ring um den Kern. Es werden keine
+     * Weltblöcke verändert, damit das Bauwerk am Portal unbeschädigt bleibt.
+     */
+    private void updateResonators(Portal p) {
+        World w = Bukkit.getWorld(p.core().world());
+        if (w == null || !w.isChunkLoaded(p.core().x() >> 4, p.core().z() >> 4)) {
+            return;
+        }
+        BlockDisplay[] arr = resonators.computeIfAbsent(p.id(), k -> new BlockDisplay[Portal.SLOTS]);
+        List<Material> blocks = resonatorBlocks.get();
+        for (int i = 0; i < Portal.SLOTS; i++) {
+            Resonator r = p.resonator(i);
+            BlockDisplay d = arr[i];
+            if (r == null) {
+                if (d != null) {
+                    d.remove();
+                    arr[i] = null;
+                }
+                continue;
+            }
+            int[] off = Portal.slotOffset(i, resonatorRadius.getAsInt());
+            Location at = new Location(w, p.core().x() + off[0] + 0.25, p.core().y() + 1.2, p.core().z() + off[1] + 0.25);
+            BlockData data = blocks.get(r.level() - 1).createBlockData();
+            if (d == null || !d.isValid()) {
+                d = w.spawn(at, BlockDisplay.class, bd -> {
+                    bd.setPersistent(false);
+                    bd.addScoreboardTag(TAG);
+                    bd.setTransformation(new Transformation(new Vector3f(), new AxisAngle4f(),
+                            new Vector3f(0.5f, 0.5f, 0.5f), new AxisAngle4f()));
+                });
+                arr[i] = d;
+            } else if (!d.getLocation().toVector().equals(at.toVector())) {
+                d.teleport(at);
+            }
+            d.setBlock(data);
+            d.setGlowing(true);
+            d.setGlowColorOverride(p.owner() == Faction.LUMEN ? org.bukkit.Color.LIME : org.bukkit.Color.BLUE);
+        }
+    }
+
+    private void removeResonators(int portalId) {
+        BlockDisplay[] arr = resonators.remove(portalId);
+        if (arr != null) {
+            for (BlockDisplay d : arr) {
+                if (d != null) {
+                    d.remove();
+                }
+            }
+        }
+    }
+
     private void removeLabel(int portalId) {
         TextDisplay d = labels.remove(portalId);
         if (d != null) {
@@ -136,6 +234,10 @@ public final class PortalRenderer implements Listener {
             if (owner != null) {
                 sb.append(ChatColor.GRAY).append(" · ").append(owner);
             }
+        }
+        if (f != Faction.NEUTRAL) {
+            sb.append('\n').append(ChatColor.WHITE).append("Stufe ").append(p.level())
+                    .append(ChatColor.GRAY).append(" · ").append(p.resonatorCount()).append("/8 Resonatoren");
         }
         sb.append('\n').append(ChatColor.DARK_GRAY).append('#').append(p.id());
         return sb.toString();

@@ -50,19 +50,26 @@ freigegeben.
         R . R
       .       .
       R   K   R        K = Kern (Lodestone)
-      .       .        R = Resonator-Platz (8 Stück, Radius 3)
+      .       .        R = Resonator-Platz (8 Stück, Radius 3, schwebend)
         R . R
 ```
 
 - Der **Kern** ist ein Leitstein (Lodestone). Darüber schwebt eine Textanzeige mit
   Name, Fraktion, Portalstufe und Besitzer.
 - Rund um den Kern gibt es **8 Resonator-Plätze** (N, NO, O, SO, S, SW, W, NW) im
-  Abstand 3. Ein besetzter Platz zeigt einen Block passend zur Resonatorstufe.
+  Abstand 3. Ein besetzter Platz zeigt einen schwebenden, halb großen Block passend zur
+  Resonatorstufe, der in der Fraktionsfarbe leuchtet. Die Welt wird dabei nicht verändert,
+  damit das Bauwerk am Portal heil bleibt.
+- Die Anzeige über dem Kern zeigt bei eroberten Portalen auch Portalstufe und die Zahl der
+  Resonatoren.
 - Der Bereich im Radius 4 um den Kern ist geschützt: Niemand kann dort Blöcke abbauen
   oder setzen, außer über die Spielmechanik.
 
 ### 2.3 Zustände
 
+- **Resonator setzen**: Mit einem Resonator in der Hand Rechtsklick auf den Kern. Er kommt
+  auf den ersten freien Platz. Sind alle 8 Plätze belegt, ersetzt er den schwächsten
+  Resonator, wenn dieser eine niedrigere Stufe hat (**Aufrüsten**).
 - **Neutral**: keine Resonatoren. Jeder Spieler mit Fraktion kann einen Resonator
   setzen und erobert das Portal damit für seine Fraktion.
 - **Erobert**: mindestens ein Resonator. Nur die eigene Fraktion kann weitere Resonatoren
@@ -86,20 +93,29 @@ außerhalb des Spiels nachgemacht werden.
 
 | Gegenstand | Item | Zweck |
 |---|---|---|
-| Resonator L1–L8 | Amethystscherbe | Auf einen Resonator-Platz setzen (Rechtsklick auf den Platz) |
+| Resonator L1–L8 | Amethystscherbe | Rechtsklick auf einen Portalkern: setzen oder aufrüsten |
 | Burst L1–L8 | Feuerkugel | Rechtsklick: Schaden an gegnerischen Resonatoren im Umkreis |
 | Portalschlüssel | Trial Key, benannt nach dem Portal | Nötig, um einen Link **zu** diesem Portal zu ziehen |
 
-- Spielgegenstände droppen beim Tod nicht und landen im Spiel-Inventar (`/ig inventar`),
-  maximal 500 Stück insgesamt (`player.max-items`).
+- Spielgegenstände liegen im normalen Inventar. Sie droppen beim Tod nicht, sondern sind
+  nach dem Wiederbeleben wieder da. `/ig inventar` zeigt eine Übersicht.
+- Höchstens 500 Spielgegenstände im Inventar (`player.max-items`). Was beim Hacken darüber
+  hinausgeht oder keinen Platz mehr hat, verfällt. In Truhen gelagerte Gegenstände zählen
+  nicht mit.
+- Jeder Gegenstand trägt die Fraktion seines Besitzers. Gegenstände der anderen Fraktion
+  wirken nicht und werden beim Fraktionswechsel bzw. beim nächsten Login entfernt.
+- Spielgegenstände wirken nicht als normale Items: Feuerkugeln legen kein Feuer,
+  Schlüssel öffnen keine Tresore, Werfer schießen sie nicht, Werkbank, Amboss und
+  Schmiedetisch nehmen sie nicht an.
 - Ein Spieler darf nur Resonatoren und Bursts bis zu seiner eigenen Spielerstufe benutzen.
 
 ## 4. Hacken
 
-- Rechtsklick auf den Kern eines Portals = **Hacken**.
-- Ergebnis: zufällig 2–4 Gegenstände (Resonatoren und Bursts um die Portalstufe herum)
-  und mit 30 % Chance ein Portalschlüssel. Am gegnerischen Portal gibt es mehr Gegenstände,
-  aber keinen Schlüssel-Bonus.
+- Rechtsklick auf den Kern eines Portals ohne Resonator oder Burst in der Hand = **Hacken**.
+- Ergebnis: zufällig 2–4 Gegenstände, am gegnerischen Portal 3–5. Je zur Hälfte
+  Resonatoren oder Bursts, Stufe = Portalstufe −1, ±0 oder +1 (neutrale Portale zählen als
+  Stufe 1), begrenzt auf 1–8. Dazu mit 30 % Chance ein Schlüssel dieses Portals.
+- Man darf Gegenstände über der eigenen Stufe erbeuten, aber erst mit höherer Stufe benutzen.
 - Abklingzeit pro Spieler und Portal: 5 Minuten. Höchstens 4 Hacks pro Portal und
   Spieler in 4 Stunden.
 - Jeder Hack gibt Aktionspunkte (eigenes/neutrales Portal 100, gegnerisches 150).
@@ -163,6 +179,7 @@ außerhalb des Spiels nachgemacht werden.
 | Aktion | AP |
 |---|---|
 | Resonator setzen | 125 |
+| Resonator aufrüsten | 65 |
 | Portal erobern (erster Resonator) | 500 |
 | Gegnerischen Resonator zerstören | 75 |
 | Link ziehen | 313 |
@@ -186,7 +203,7 @@ Stufen: 1 = 0 AP, 2 = 2 500, 3 = 20 000, 4 = 70 000, 5 = 150 000, 6 = 300 000,
 | `/ig vorschlagen <Name>` | Portal vorschlagen |
 | `/ig link <Schlüssel-Portal>` | Link vom aktuellen Portal ziehen |
 | `/ig aufladen <Portal>` | Portal über Schlüssel aufladen |
-| `/ig inventar` | Spiel-Inventar öffnen |
+| `/ig inventar` | Übersicht der eigenen Spielgegenstände |
 | `/ig stand` | Aktueller Einfluss beider Fraktionen, Zyklusstand |
 | `/ig zyklus [alt]` | Ergebnis laufender/vergangener Zyklen |
 
@@ -200,7 +217,7 @@ Stufen: 1 = 0 AP, 2 = 2 500, 3 = 20 000, 4 = 70 000, 5 = 150 000, 6 = 300 000,
 | `/ig admin portal liste` | Alle Portale mit ID und Position |
 | `/ig admin portal <umbenennen\|verschieben\|loeschen\|neutral\|tp> <#id\|Name> …` | Portale verwalten; `verschieben` setzt den Kern an die eigene Position, `loeschen` braucht zusätzlich `bestaetigen` |
 | `/ig admin fraktion <spieler> <fraktion>` | Fraktion wechseln |
-| `/ig admin geben <spieler> <item> <stufe> [anzahl]` | Gegenstände geben (Test) |
+| `/ig admin geben <spieler> <resonator\|burst\|schluessel> <stufe\|#portal> [anzahl]` | Gegenstände geben (Test) |
 | `/ig admin ap <spieler> <+/-menge>` | AP geben/abziehen (Test, Korrektur) |
 | `/ig info <spieler>` | Profil eines anderen Spielers ansehen |
 | `/ig reload` | Konfiguration neu laden |

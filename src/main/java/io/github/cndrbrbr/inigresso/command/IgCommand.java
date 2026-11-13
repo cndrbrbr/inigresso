@@ -32,7 +32,7 @@ public final class IgCommand implements TabExecutor {
             new Sub("vorschlagen", false, "<Name>", "Portal vorschlagen", 3),
             new Sub("link", false, "<Portal>", "Link vom aktuellen Portal ziehen", 6),
             new Sub("aufladen", false, "<Portal>", "Portal per Schlüssel aufladen", 5),
-            new Sub("inventar", false, "", "Spiel-Inventar öffnen", 4),
+            new Sub("inventar", false, "", "Übersicht deiner Spielgegenstände", 4),
             new Sub("stand", false, "", "Einfluss beider Fraktionen", 7),
             new Sub("zyklus", false, "[alt]", "Ergebnis laufender/vergangener Zyklen", 7),
             new Sub("vorschlaege", true, "", "Offene Vorschläge anzeigen", 3),
@@ -77,6 +77,7 @@ public final class IgCommand implements TabExecutor {
             case "annehmen" -> portalCommands.accept(sender, label, args);
             case "ablehnen" -> portalCommands.reject(sender, label, args);
             case "portal" -> portalCommands.portalInfo(sender);
+            case "inventar" -> inventory(sender);
             default -> sender.sendMessage(ChatColor.YELLOW + "/" + label + " " + sub.name
                     + " ist noch nicht fertig (kommt in Phase " + sub.phase + ").");
         }
@@ -202,9 +203,105 @@ public final class IgCommand implements TabExecutor {
                         + " AP (Stufe " + PlayerProgressService.levelFor(p.get().ap()) + ").");
             }
             case "portal" -> portalCommands.adminPortal(sender, label, args);
-            case "geben" -> sender.sendMessage(ChatColor.YELLOW + "/" + label + " admin geben ist noch nicht fertig (kommt in Phase 4).");
+            case "geben" -> give(sender, label, args);
             default -> sender.sendMessage(ChatColor.RED + "/" + label + " admin <fraktion|ap|portal|geben> …");
         }
+    }
+
+    private void inventory(CommandSender sender) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(ChatColor.RED + "Nur für Spieler.");
+            return;
+        }
+        var inv = plugin.gameInventory();
+        var summary = inv.summary(player);
+        sender.sendMessage(ChatColor.GOLD + "Spielgegenstände: " + ChatColor.WHITE + inv.count(player)
+                + ChatColor.GRAY + " / " + inv.max());
+        if (summary.isEmpty()) {
+            sender.sendMessage(ChatColor.GRAY + "Keine. Hacke ein Portal (Rechtsklick auf den Leitstein).");
+            return;
+        }
+        StringBuilder res = new StringBuilder();
+        StringBuilder bursts = new StringBuilder();
+        for (var en : summary.entrySet()) {
+            var g = en.getKey();
+            switch (g.type()) {
+                case RESONATOR -> res.append(io.github.cndrbrbr.inigresso.item.ItemFactory.levelColor(g.level()))
+                        .append("L").append(g.level()).append(ChatColor.GRAY).append("×").append(en.getValue()).append(" ");
+                case BURST -> bursts.append(io.github.cndrbrbr.inigresso.item.ItemFactory.levelColor(g.level()))
+                        .append("L").append(g.level()).append(ChatColor.GRAY).append("×").append(en.getValue()).append(" ");
+                case KEY -> { }
+            }
+        }
+        if (!res.isEmpty()) {
+            sender.sendMessage(ChatColor.GRAY + "Resonatoren: " + res);
+        }
+        if (!bursts.isEmpty()) {
+            sender.sendMessage(ChatColor.GRAY + "Bursts: " + bursts);
+        }
+        summary.forEach((g, n) -> {
+            if (g.type() == io.github.cndrbrbr.inigresso.model.GameItem.Type.KEY) {
+                String name = plugin.portals().get(g.portalId()).map(p -> p.name()).orElse("(gelöscht)");
+                sender.sendMessage(ChatColor.AQUA + "Schlüssel " + ChatColor.WHITE + name + ChatColor.DARK_GRAY
+                        + " #" + g.portalId() + ChatColor.GRAY + " ×" + n);
+            }
+        });
+    }
+
+    private void give(CommandSender sender, String label, String[] args) {
+        // admin geben <spieler> <resonator|burst|schluessel> <stufe|#portal> [anzahl]
+        if (args.length < 5) {
+            sender.sendMessage(ChatColor.RED + "/" + label + " admin geben <spieler> <resonator|burst|schluessel> <stufe|#portal> [anzahl]");
+            return;
+        }
+        Player target = plugin.getServer().getPlayerExact(args[2]);
+        if (target == null) {
+            sender.sendMessage(ChatColor.RED + "Spieler " + args[2] + " ist nicht online.");
+            return;
+        }
+        PlayerProfile profile = plugin.profiles().get(target.getUniqueId()).orElseThrow();
+        if (!profile.hasFaction()) {
+            sender.sendMessage(ChatColor.RED + target.getName() + " hat noch keine Fraktion.");
+            return;
+        }
+        var type = io.github.cndrbrbr.inigresso.model.GameItem.Type.parse(args[3]);
+        if (type.isEmpty()) {
+            sender.sendMessage(ChatColor.RED + "Unbekannter Gegenstand: " + args[3]);
+            return;
+        }
+        int amount = 1;
+        if (args.length >= 6) {
+            try {
+                amount = Math.clamp(Integer.parseInt(args[5]), 1, 500);
+            } catch (NumberFormatException e) {
+                sender.sendMessage(ChatColor.RED + "Keine Zahl: " + args[5]);
+                return;
+            }
+        }
+        io.github.cndrbrbr.inigresso.model.GameItem item;
+        if (type.get() == io.github.cndrbrbr.inigresso.model.GameItem.Type.KEY) {
+            var portal = plugin.portals().find(args[4]);
+            if (portal.isEmpty()) {
+                sender.sendMessage(ChatColor.RED + "Portal " + args[4] + " gibt es nicht.");
+                return;
+            }
+            item = io.github.cndrbrbr.inigresso.model.GameItem.key(portal.get().id(), profile.faction());
+        } else {
+            int level;
+            try {
+                level = Integer.parseInt(args[4].replaceFirst("(?i)^l", ""));
+            } catch (NumberFormatException e) {
+                level = 0;
+            }
+            if (level < 1 || level > 8) {
+                sender.sendMessage(ChatColor.RED + "Stufe 1–8 angeben.");
+                return;
+            }
+            item = new io.github.cndrbrbr.inigresso.model.GameItem(type.get(), level, 0, profile.faction());
+        }
+        int got = plugin.gameInventory().give(target, item, amount);
+        plugin.audit(sender.getName(), "geben", target.getName() + " " + got + "x " + item);
+        sender.sendMessage(ChatColor.GREEN + target.getName() + " hat " + got + " von " + amount + " erhalten.");
     }
 
     private void help(CommandSender sender, String label) {
@@ -245,6 +342,8 @@ public final class IgCommand implements TabExecutor {
                 filter(out, plugin.portals().all().stream().map(p -> "#" + p.id()).toList(), args[3]);
             } else if (args.length == 3 && args[0].equalsIgnoreCase("admin")) {
                 filter(out, onlineNames(), args[2]);
+            } else if (args.length == 4 && args[0].equalsIgnoreCase("admin") && args[1].equalsIgnoreCase("geben")) {
+                filter(out, List.of("resonator", "burst", "schluessel"), args[3]);
             } else if (args.length == 2 && List.of("annehmen", "ablehnen").contains(args[0].toLowerCase(Locale.ROOT))) {
                 filter(out, plugin.proposals().open().stream().map(p -> String.valueOf(p.id())).toList(), args[1]);
             } else if (args.length == 2 && args[0].equalsIgnoreCase("vorschlag")) {

@@ -6,6 +6,9 @@ import io.github.cndrbrbr.inigresso.model.BlockPos;
 import io.github.cndrbrbr.inigresso.model.Faction;
 import io.github.cndrbrbr.inigresso.model.Portal;
 import io.github.cndrbrbr.inigresso.model.Proposal;
+import io.github.cndrbrbr.inigresso.model.Resonator;
+import java.util.HashMap;
+import java.util.Map;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -30,14 +33,27 @@ public final class PortalRepository {
 
     public List<Portal> loadPortals() throws SQLException {
         List<Portal> out = new ArrayList<>();
+        Map<Integer, Portal> byId = new HashMap<>();
         try (PreparedStatement ps = db.connection().prepareStatement(
                 "SELECT id, name, world, x, y, z, owner, captured_by, captured_at, proposer, created_at FROM portal");
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
-                out.add(new Portal(rs.getInt(1), rs.getString(2),
+                Portal p = new Portal(rs.getInt(1), rs.getString(2),
                         new BlockPos(rs.getString(3), rs.getInt(4), rs.getInt(5), rs.getInt(6)),
                         Faction.valueOf(rs.getString(7)), uuid(rs.getString(8)), rs.getLong(9),
-                        uuid(rs.getString(10)), rs.getLong(11)));
+                        uuid(rs.getString(10)), rs.getLong(11));
+                out.add(p);
+                byId.put(p.id(), p);
+            }
+        }
+        try (PreparedStatement ps = db.connection().prepareStatement(
+                "SELECT portal_id, slot, level, energy, deployed_by FROM resonator");
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                Portal p = byId.get(rs.getInt(1));
+                if (p != null) {
+                    p.setResonator(rs.getInt(2), new Resonator(rs.getInt(3), rs.getInt(4), UUID.fromString(rs.getString(5))));
+                }
             }
         }
         return out;
@@ -71,6 +87,15 @@ public final class PortalRepository {
         long capturedAt = p.capturedAt();
         String proposer = p.proposer() == null ? null : p.proposer().toString();
         long createdAt = p.createdAt();
+        int[][] res = new int[Portal.SLOTS][];
+        String[] resBy = new String[Portal.SLOTS];
+        for (int i = 0; i < Portal.SLOTS; i++) {
+            Resonator r = p.resonator(i);
+            if (r != null) {
+                res[i] = new int[] {r.level(), r.energy()};
+                resBy[i] = r.deployedBy().toString();
+            }
+        }
         db.submit(conn -> {
             try (PreparedStatement ps = conn.prepareStatement("""
                     INSERT INTO portal (id, name, world, x, y, z, owner, captured_by, captured_at, proposer, created_at)
@@ -90,6 +115,24 @@ public final class PortalRepository {
                 ps.setString(10, proposer);
                 ps.setLong(11, createdAt);
                 ps.executeUpdate();
+            }
+            try (PreparedStatement del = conn.prepareStatement("DELETE FROM resonator WHERE portal_id = ?")) {
+                del.setInt(1, id);
+                del.executeUpdate();
+            }
+            try (PreparedStatement ins = conn.prepareStatement(
+                    "INSERT INTO resonator (portal_id, slot, level, energy, deployed_by) VALUES (?, ?, ?, ?, ?)")) {
+                for (int i = 0; i < Portal.SLOTS; i++) {
+                    if (res[i] != null) {
+                        ins.setInt(1, id);
+                        ins.setInt(2, i);
+                        ins.setInt(3, res[i][0]);
+                        ins.setInt(4, res[i][1]);
+                        ins.setString(5, resBy[i]);
+                        ins.addBatch();
+                    }
+                }
+                ins.executeBatch();
             }
         });
     }

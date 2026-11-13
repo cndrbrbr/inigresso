@@ -44,4 +44,8 @@ public sealed interface GameEvent {
     /** Nachricht an einen Spieler; wird beim nächsten Login zugestellt, falls er offline ist. */
     record Notify(UUID player, String text) implements GameEvent {
     }
+
+    /** Ein Spieler hat ein Portal gehackt (für Abklingzeit, wird gespeichert). */
+    record Hacked(UUID player, int portalId, long timestamp) implements GameEvent {
+    }
 }

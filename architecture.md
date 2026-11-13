@@ -91,7 +91,7 @@ arbeitet asynchron.
 | `FieldService` | Felder nach neuem Link bestimmen (größtes Dreieck je Seite), Felder bei Linkverlust entfernen, Punkt-in-Feld-Abfrage |
 | `ScoreService` | Einfluss je Fraktion, stündliche Messpunkte, Wochenzyklus, Ergebnis |
 | `PlayerProgressService` | AP vergeben, Stufe berechnen, Benachrichtigungen |
-| `ItemService` | Spiel-Inventar (Limit 500), Gegenstände geben/nehmen |
+| `HackService` → `item/GameInventory` | Gegenstände liegen als markierte Items im normalen Inventar; `GameInventory` zählt (Limit 500), gibt und verbraucht sie. Die Tabelle `player_item` wird dafür nicht benutzt (Reserve). |
 
 Services melden Änderungen über einen einfachen `GameEventBus` (z. B. `PortalChanged`,
 `LinkCreated`, `LinkRemoved`, `FieldCreated`, `FieldRemoved`). `render` und `store`
@@ -114,7 +114,8 @@ hören darauf, Services kennen beide nicht direkt.
 - Kern: Lodestone + `TextDisplay` (Name, Fraktion in Farbe, Stufe, Besitzer).
   Entities sind nicht persistent und werden beim Chunk-Laden neu gesetzt (Erfahrung
   aus der Buildcontest-Statustafel).
-- Resonatorblöcke je Stufe (Konfiguration), z. B. L1 Kupferblock … L8 Diamantblock.
+- Resonatoren als `BlockDisplay` (halbe Größe, leuchtend in Fraktionsfarbe) je Stufe aus
+  der Konfiguration, z. B. L1 Kupferblock … L8 Diamantblock. Weltblöcke bleiben unverändert.
 - Links: alle 10 Ticks Partikel (`DUST` in Fraktionsfarbe) entlang des Segments, nur
   für Abschnitte im Umkreis von 64 Blöcken um Spieler.
 - Felder: Bossbar „Feld der Lumen – 1 234 Einfluss“, wenn der Spieler darin steht

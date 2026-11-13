@@ -3,7 +3,14 @@ package io.github.cndrbrbr.inigresso;
 import io.github.cndrbrbr.inigresso.command.IgCommand;
 import io.github.cndrbrbr.inigresso.config.InigressoConfig;
 import io.github.cndrbrbr.inigresso.event.GameEventBus;
+import io.github.cndrbrbr.inigresso.item.GameInventory;
+import io.github.cndrbrbr.inigresso.item.ItemFactory;
+import io.github.cndrbrbr.inigresso.listener.ItemGuardListener;
 import io.github.cndrbrbr.inigresso.listener.PlayerConnectionListener;
+import io.github.cndrbrbr.inigresso.listener.PortalInteractListener;
+import io.github.cndrbrbr.inigresso.service.HackService;
+import io.github.cndrbrbr.inigresso.store.HackRepository;
+import java.util.random.RandomGenerator;
 import io.github.cndrbrbr.inigresso.listener.ProtectionListener;
 import io.github.cndrbrbr.inigresso.render.FactionTeams;
 import io.github.cndrbrbr.inigresso.render.PortalRenderer;
@@ -41,6 +48,8 @@ public final class InigressoPlugin extends JavaPlugin {
     private ProposalService proposals;
     private MessageRepository messages;
     private PortalRenderer portalRenderer;
+    private HackService hacks;
+    private GameInventory gameInventory;
     private final Clock clock = Clock.systemDefaultZone();
 
     @Override
@@ -63,7 +72,14 @@ public final class InigressoPlugin extends JavaPlugin {
             PortalRepository portalRepo = new PortalRepository(database);
             portalRepo.bind(bus);
             messages = new MessageRepository(database);
-            portals = new PortalService(bus, clock, () -> settings.portalProtectRadius(), portalRepo.loadPortals());
+            portals = new PortalService(bus, clock, () -> settings.portalProtectRadius(), progress,
+                    portalRepo.loadPortals());
+            HackRepository hackRepo = new HackRepository(database);
+            hackRepo.bind(bus);
+            hacks = new HackService(bus, clock, RandomGenerator.getDefault(),
+                    () -> new HackService.Rules(settings.hackCooldownMinutes(), settings.hackMaxPer4h(),
+                            settings.hackKeyChance()),
+                    progress, hackRepo.loadSince(clock.millis() - HackService.WINDOW_MS));
             proposals = new ProposalService(bus, clock,
                     () -> new ProposalService.Rules(settings.worlds(), settings.portalMinDistance(),
                             settings.proposalMinLevel(), settings.proposalMaxOpen()),
@@ -83,11 +99,17 @@ public final class InigressoPlugin extends JavaPlugin {
         FactionTeams teams = new FactionTeams();
         teams.setup();
         teams.bind(bus);
-        portalRenderer = new PortalRenderer(portals);
+        portalRenderer = new PortalRenderer(portals, () -> settings.resonatorRadius(), () -> settings.resonatorBlocks());
         portalRenderer.bind(bus);
         portalRenderer.showLoaded();
         getServer().getPluginManager().registerEvents(portalRenderer, this);
         getServer().getPluginManager().registerEvents(new ProtectionListener(portals), this);
+        ItemFactory itemFactory = new ItemFactory(this, portals);
+        gameInventory = new GameInventory(itemFactory, () -> settings.playerMaxItems());
+        getServer().getPluginManager().registerEvents(
+                new PortalInteractListener(portals, hacks, profiles, itemFactory, gameInventory), this);
+        getServer().getPluginManager().registerEvents(
+                new ItemGuardListener(itemFactory, gameInventory, profiles, bus), this);
         getServer().getPluginManager().registerEvents(
                 new PlayerConnectionListener(profiles, teams, messages, clock, bus), this);
         // Nach /reload sind Spieler schon online.
@@ -117,6 +139,9 @@ public final class InigressoPlugin extends JavaPlugin {
         if (portals != null) {
             portals.reindex();
         }
+        if (portalRenderer != null) {
+            portalRenderer.refreshAll();
+        }
     }
 
     public InigressoConfig settings() {
@@ -145,6 +170,10 @@ public final class InigressoPlugin extends JavaPlugin {
 
     public ProposalService proposals() {
         return proposals;
+    }
+
+    public GameInventory gameInventory() {
+        return gameInventory;
     }
 
     /** Admin-Eingriffe protokollieren (rules.md §11). */

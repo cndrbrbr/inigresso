@@ -1,7 +1,6 @@
 package io.github.cndrbrbr.inigresso.store;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 
 import io.github.cndrbrbr.inigresso.event.GameEventBus;
 import io.github.cndrbrbr.inigresso.model.BlockPos;
@@ -38,7 +37,7 @@ class PortalRepositoryTest {
             repo.bind(bus);
             MessageRepository messages = new MessageRepository(db);
             ProfileService profiles = new ProfileService(bus, List.of());
-            PortalService portals = new PortalService(bus, Clock.systemUTC(), () -> 4, repo.loadPortals());
+            PortalService portals = new PortalService(bus, Clock.systemUTC(), () -> 4, new PlayerProgressService(bus), repo.loadPortals());
             ProposalService proposals = new ProposalService(bus, Clock.systemUTC(),
                     () -> new ProposalService.Rules(List.of("world"), 48, 1, 3), portals,
                     new PlayerProgressService(bus), profiles, repo.loadProposals());
@@ -53,6 +52,11 @@ class PortalRepositoryTest {
             Portal p = portals.byName("Turm").orElseThrow();
             portals.rename(p, "Großer Turm");
             portals.move(p, new BlockPos("world", 5, 65, 6));
+            PlayerProfile w = profiles.join(UUID.randomUUID(), "w");
+            w.setFaction(Faction.WAECHTER);
+            w.setAp(2_500);
+            portals.deploy(w, p, 2);
+            portals.deploy(w, p, 1);
             Portal weg = portals.create("Weg", new BlockPos("world", 900, 64, 0), null);
             portals.remove(weg);
             messages.add(anna, "hallo", 1);
@@ -66,8 +70,11 @@ class PortalRepositoryTest {
             assertEquals("Großer Turm", p.name());
             assertEquals(new BlockPos("world", 5, 65, 6), p.core());
             assertEquals(anna, p.proposer());
-            assertEquals(Faction.NEUTRAL, p.owner());
-            assertNull(p.capturedBy());
+            assertEquals(Faction.WAECHTER, p.owner());
+            assertEquals(2, p.resonatorCount());
+            assertEquals(2, p.resonator(0).level());
+            assertEquals(1500, p.resonator(0).energy());
+            assertEquals(1, p.resonator(1).level());
 
             List<Proposal> proposals = repo.loadProposals();
             assertEquals(3, proposals.size());

@@ -15,6 +15,7 @@ public final class PlayerProgressService {
     /** AP-Werte aus rules.md §9. */
     public enum Action {
         DEPLOY_RESONATOR(125),
+        UPGRADE_RESONATOR(65),
         CAPTURE_PORTAL(500),
         DESTROY_RESONATOR(75),
         CREATE_LINK(313),
