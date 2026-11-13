@@ -85,6 +85,19 @@ freigegeben.
   Stufe 8: 1, Stufe 7: 1, Stufe 6: 2, Stufe 5: 2, Stufe 4: 4, Stufen 1–3: 8.
   So braucht ein Portal der Stufe 8 acht verschiedene Spieler.
 
+### 2.5 Automatische Portale
+
+- Optional (`auto-portals.enabled`): Das Plugin setzt selbst Portale an der Oberfläche, eins
+  je Rasterfeld von 100 × 100 Blöcken, um bis zu 25 Blöcke zufällig, aber immer gleich versetzt.
+- Gebaut wird nur auf natürlichem Boden (Gras, Erde, Sand, Stein, Schnee; Bäume in der Nähe
+  sind erlaubt) und auf halbwegs ebenem Gelände. Liegt im Schutzbereich ein Bau, Wasser oder ein
+  Weg, wird bis zu 12 Blöcke daneben gesucht, sonst bleibt das Feld leer.
+- Kein automatisches Portal näher als 50 Blöcke an einem bestehenden Portal.
+- Jedes Rasterfeld wird nur einmal geprüft, wenn seine Gegend zum ersten Mal geladen wird.
+  Löscht ein Admin ein automatisches Portal, entsteht dort kein neues.
+- Namen werden aus Wortteilen gebildet (z. B. „Nebelborn“, „Sternruh“) und lassen sich mit
+  `/ig admin portal umbenennen` ändern.
+
 ## 3. Ausrüstung
 
 Alle Spielgegenstände sind normale Minecraft-Items mit einer Markierung

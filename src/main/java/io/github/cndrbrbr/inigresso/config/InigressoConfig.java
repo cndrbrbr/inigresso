@@ -27,7 +27,10 @@ public record InigressoConfig(
         int playerMaxItems,
         DayOfWeek cycleStartDay,
         int cycleLengthHours,
-        int measureMinutes) {
+        int measureMinutes,
+        boolean autoPortals,
+        int autoSpacing,
+        int autoJitter) {
 
     private static final List<Material> DEFAULT_BLOCKS = List.of(
             Material.COPPER_BLOCK, Material.IRON_BLOCK, Material.GOLD_BLOCK, Material.REDSTONE_BLOCK,
@@ -53,7 +56,10 @@ public record InigressoConfig(
                 c.getInt("player.max-items", 500),
                 day(c.getString("cycle.start-day", "MONDAY"), log),
                 Math.max(1, c.getInt("cycle.length-hours", 168)),
-                Math.max(1, c.getInt("cycle.measure-minutes", 60)));
+                Math.max(1, c.getInt("cycle.measure-minutes", 60)),
+                c.getBoolean("auto-portals.enabled", false),
+                Math.max(16, c.getInt("auto-portals.spacing", 100)),
+                Math.max(0, c.getInt("auto-portals.jitter", 25)));
     }
 
     private static List<Material> blocks(List<String> names, java.util.logging.Logger log) {

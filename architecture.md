@@ -66,7 +66,8 @@ Die Portalstufe, Reichweite und der Einfluss werden berechnet, nicht gespeichert
 
 `portal`, `resonator` (portal_id, slot PK), `link`, `field`, `proposal`, `player`,
 `player_item` (uuid, item, level, count), `hack_log`, `measurement`, `cycle`,
-`message`, `audit`, `schema_version`.
+`message`, `audit`, `state`, `auto_cell` (geprüfte Rasterzellen für automatische Portale),
+`schema_version`.
 
 - Alle Daten werden beim Start komplett in den Speicher geladen (erwartet: < 1 000
   Portale, < 5 000 Links).
@@ -169,6 +170,10 @@ player:
   max-items: 500
 cycle:
   start-day: MONDAY
+auto-portals:
+  enabled: false
+  spacing: 100
+  jitter: 25
 ```
 
 ## 9. Tests

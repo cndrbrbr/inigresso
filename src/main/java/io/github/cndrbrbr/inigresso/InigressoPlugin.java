@@ -17,6 +17,9 @@ import io.github.cndrbrbr.inigresso.store.ScoreRepository;
 import io.github.cndrbrbr.inigresso.store.LinkRepository;
 import io.github.cndrbrbr.inigresso.render.NetworkRenderer;
 import io.github.cndrbrbr.inigresso.store.StateRepository;
+import io.github.cndrbrbr.inigresso.store.AutoCellRepository;
+import io.github.cndrbrbr.inigresso.service.AutoPortalPlanner;
+import io.github.cndrbrbr.inigresso.listener.AutoPortalListener;
 import io.github.cndrbrbr.inigresso.store.HackRepository;
 import java.util.random.RandomGenerator;
 import io.github.cndrbrbr.inigresso.listener.ProtectionListener;
@@ -63,6 +66,8 @@ public final class InigressoPlugin extends JavaPlugin {
     private PortalInteractListener portalInteract;
     private LinkService links;
     private NetworkRenderer network;
+    private AutoCellRepository autoCells;
+    private java.util.Set<String> autoDone;
     private ScoreService score;
     private ScoreRepository scoreRepo;
     private final Clock clock = Clock.systemDefaultZone();
@@ -116,6 +121,8 @@ public final class InigressoPlugin extends JavaPlugin {
                     () -> new ProposalService.Rules(settings.worlds(), settings.portalMinDistance(),
                             settings.proposalMinLevel(), settings.proposalMaxOpen()),
                     portals, progress, profiles, portalRepo.loadProposals());
+            autoCells = new AutoCellRepository(database);
+            autoDone = autoCells.loadDone();
             getLogger().info(profiles.all().size() + " Spielerprofile, " + portals.all().size() + " Portale, "
                     + proposals.open().size() + " offene Vorschläge, " + links.links().size() + " Links, "
                     + links.fields().size() + " Felder geladen.");
@@ -137,6 +144,11 @@ public final class InigressoPlugin extends JavaPlugin {
         portalRenderer.showLoaded();
         getServer().getPluginManager().registerEvents(portalRenderer, this);
         getServer().getPluginManager().registerEvents(new ProtectionListener(portals), this);
+        AutoPortalListener auto = new AutoPortalListener(this, portals, autoCells, autoDone,
+                () -> new AutoPortalPlanner(settings.autoSpacing(), settings.autoJitter()),
+                () -> settings.portalProtectRadius(), () -> settings.worlds(), () -> settings.autoPortals());
+        getServer().getPluginManager().registerEvents(auto, this);
+        auto.scanLoaded();
         ItemFactory itemFactory = new ItemFactory(this, portals);
         gameInventory = new GameInventory(itemFactory, () -> settings.playerMaxItems());
         portalInteract = new PortalInteractListener(portals, hacks, profiles, itemFactory, gameInventory, combat, energy);

@@ -36,3 +36,10 @@ cycle:
   # Zum Testen z. B. length-hours: 1 und measure-minutes: 5.
   length-hours: 168
   measure-minutes: 60
+
+# Automatische Portale an der Oberfläche (rules.md §2.4): eins je Rasterzelle spacing × spacing,
+# um bis zu jitter Blöcke versetzt. Nur auf natürlichem Boden, Bauten werden übersprungen.
+auto-portals:
+  enabled: false
+  spacing: 100
+  jitter: 25
