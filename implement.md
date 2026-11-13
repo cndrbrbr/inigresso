@@ -31,13 +31,15 @@ läuft. Regeln: [rules.md](rules.md), Aufbau: [architecture.md](architecture.md)
 
 ## Phase 3 – Vorschläge und Portale
 
-- [ ] `/ig vorschlagen` mit allen Prüfungen
-- [ ] `/ig vorschlaege`, `tp`, `annehmen`, `ablehnen`, Nachrichten an Offline-Spieler
-- [ ] Portal anlegen: Lodestone, `TextDisplay`, Schutzbereich
-- [ ] `ProtectionListener` (Abbau, Setzen, Explosion, Kolben, Flüssigkeiten)
-- [ ] `/ig portal`, Admin-Portalbefehle
+- [x] `/ig vorschlagen` mit allen Prüfungen
+- [x] `/ig vorschlaege`, `tp`, `annehmen`, `ablehnen`, Nachrichten an Offline-Spieler
+- [x] Portal anlegen: Lodestone, `TextDisplay`, Schutzbereich
+- [x] `ProtectionListener` (Abbau, Setzen, Explosion, Kolben, Flüssigkeiten)
+- [x] `/ig portal`, Admin-Portalbefehle
 - **Fertig, wenn:** Ein Spieler schlägt vor, ein Admin nimmt an, das Portal steht
-      geschützt in der Welt und bleibt nach Neustart.
+      geschützt in der Welt und bleibt nach Neustart. ✔ 0.3.0: unit-getestet; auf Spigot 26.3
+      geprüft: Anzeige beim Chunk-Laden, Leitstein, Umbenennen, Löschen. Vorschlagen und Schutz
+      mit echtem Spieler noch zu prüfen.
 
 ## Phase 4 – Gegenstände, Resonatoren, Hacken
 

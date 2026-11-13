@@ -25,8 +25,11 @@ freigegeben.
 ### 2.1 Vorschlagen und Freigeben
 
 - Ein Spieler mit Fraktion steht an einem Bauwerk und schlägt mit
-  `/ig vorschlagen <Name>` ein Portal vor. Gespeichert werden Position, Welt, Name,
-  Vorschlagender und Zeitpunkt.
+  `/ig vorschlagen <Name>` ein Portal vor. Der Kern kommt genau an die Stelle, an der
+  er steht. Gespeichert werden Position, Welt, Name, Vorschlagender und Zeitpunkt.
+- Namen: 3–32 Zeichen, nicht nur Ziffern, eindeutig (ohne Groß-/Kleinschreibung) unter
+  allen Portalen und offenen Vorschlägen. In Befehlen kann ein Portal per Name oder `#ID`
+  angegeben werden.
 - Voraussetzungen:
   - mindestens Spielerstufe 2,
   - höchstens 3 offene Vorschläge pro Spieler,
@@ -37,7 +40,8 @@ freigegeben.
   `/ig vorschlag tp <id>` hinteleportieren und mit `/ig annehmen <id>` bzw.
   `/ig ablehnen <id> <Grund>` entscheiden. Der Vorschlagende bekommt eine Nachricht
   (auch beim nächsten Login) und bei Annahme Aktionspunkte.
-- Bei Annahme wird das Portal neutral erzeugt (Abschnitt 2.2).
+- Bei Annahme wird das Portal neutral erzeugt (Abschnitt 2.2). Abstand und Name werden
+  dabei erneut geprüft, weil inzwischen ein anderes Portal entstanden sein kann.
 - Admins können Portale umbenennen, verschieben und löschen.
 
 ### 2.2 Aufbau eines Portals
@@ -193,7 +197,8 @@ Stufen: 1 = 0 AP, 2 = 2 500, 3 = 20 000, 4 = 70 000, 5 = 150 000, 6 = 300 000,
 | `/ig vorschlaege` | Offene Vorschläge anzeigen |
 | `/ig vorschlag tp <id>` | Zum Vorschlag teleportieren |
 | `/ig annehmen <id>` / `/ig ablehnen <id> <Grund>` | Vorschlag entscheiden |
-| `/ig admin portal <umbenennen\|verschieben\|loeschen\|neutral> …` | Portale verwalten |
+| `/ig admin portal liste` | Alle Portale mit ID und Position |
+| `/ig admin portal <umbenennen\|verschieben\|loeschen\|neutral\|tp> <#id\|Name> …` | Portale verwalten; `verschieben` setzt den Kern an die eigene Position, `loeschen` braucht zusätzlich `bestaetigen` |
 | `/ig admin fraktion <spieler> <fraktion>` | Fraktion wechseln |
 | `/ig admin geben <spieler> <item> <stufe> [anzahl]` | Gegenstände geben (Test) |
 | `/ig admin ap <spieler> <+/-menge>` | AP geben/abziehen (Test, Korrektur) |

@@ -43,9 +43,11 @@ public final class IgCommand implements TabExecutor {
             new Sub("reload", true, "", "Konfiguration neu laden", 0));
 
     private final InigressoPlugin plugin;
+    private final PortalCommands portalCommands;
 
     public IgCommand(InigressoPlugin plugin) {
         this.plugin = plugin;
+        this.portalCommands = new PortalCommands(plugin);
     }
 
     @Override
@@ -69,6 +71,12 @@ public final class IgCommand implements TabExecutor {
             case "fraktion" -> faction(sender, label, args);
             case "info" -> info(sender, args);
             case "admin" -> admin(sender, label, args);
+            case "vorschlagen" -> portalCommands.propose(sender, label, args);
+            case "vorschlaege" -> portalCommands.listProposals(sender);
+            case "vorschlag" -> portalCommands.teleportToProposal(sender, label, args);
+            case "annehmen" -> portalCommands.accept(sender, label, args);
+            case "ablehnen" -> portalCommands.reject(sender, label, args);
+            case "portal" -> portalCommands.portalInfo(sender);
             default -> sender.sendMessage(ChatColor.YELLOW + "/" + label + " " + sub.name
                     + " ist noch nicht fertig (kommt in Phase " + sub.phase + ").");
         }
@@ -193,8 +201,8 @@ public final class IgCommand implements TabExecutor {
                 sender.sendMessage(ChatColor.GREEN + p.get().lastName() + " hat jetzt " + String.format("%,d", p.get().ap())
                         + " AP (Stufe " + PlayerProgressService.levelFor(p.get().ap()) + ").");
             }
-            case "portal", "geben" -> sender.sendMessage(ChatColor.YELLOW + "/" + label + " admin " + what
-                    + " ist noch nicht fertig (kommt in Phase " + (what.equals("portal") ? 3 : 4) + ").");
+            case "portal" -> portalCommands.adminPortal(sender, label, args);
+            case "geben" -> sender.sendMessage(ChatColor.YELLOW + "/" + label + " admin geben ist noch nicht fertig (kommt in Phase 4).");
             default -> sender.sendMessage(ChatColor.RED + "/" + label + " admin <fraktion|ap|portal|geben> …");
         }
     }
@@ -231,8 +239,18 @@ public final class IgCommand implements TabExecutor {
                 filter(out, onlineNames(), args[1]);
             } else if (args.length == 2 && args[0].equalsIgnoreCase("admin")) {
                 filter(out, List.of("fraktion", "ap", "portal", "geben"), args[1]);
+            } else if (args.length == 3 && args[0].equalsIgnoreCase("admin") && args[1].equalsIgnoreCase("portal")) {
+                filter(out, List.of("liste", "umbenennen", "verschieben", "loeschen", "neutral", "tp"), args[2]);
+            } else if (args.length == 4 && args[0].equalsIgnoreCase("admin") && args[1].equalsIgnoreCase("portal")) {
+                filter(out, plugin.portals().all().stream().map(p -> "#" + p.id()).toList(), args[3]);
             } else if (args.length == 3 && args[0].equalsIgnoreCase("admin")) {
                 filter(out, onlineNames(), args[2]);
+            } else if (args.length == 2 && List.of("annehmen", "ablehnen").contains(args[0].toLowerCase(Locale.ROOT))) {
+                filter(out, plugin.proposals().open().stream().map(p -> String.valueOf(p.id())).toList(), args[1]);
+            } else if (args.length == 2 && args[0].equalsIgnoreCase("vorschlag")) {
+                filter(out, List.of("tp"), args[1]);
+            } else if (args.length == 3 && args[0].equalsIgnoreCase("vorschlag")) {
+                filter(out, plugin.proposals().open().stream().map(p -> String.valueOf(p.id())).toList(), args[2]);
             } else if (args.length == 4 && args[0].equalsIgnoreCase("admin") && args[1].equalsIgnoreCase("fraktion")) {
                 filter(out, List.of("lumen", "waechter"), args[3]);
             }

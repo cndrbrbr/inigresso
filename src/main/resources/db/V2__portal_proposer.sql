@@ -1,0 +1,1 @@
+ALTER TABLE portal ADD COLUMN proposer TEXT;
