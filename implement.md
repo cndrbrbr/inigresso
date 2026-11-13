@@ -1,0 +1,90 @@
+# Inigresso – Umsetzungsplan
+
+Reihenfolge so gewählt, dass nach jeder Phase etwas Spielbares auf einem Testserver
+läuft. Regeln: [rules.md](rules.md), Aufbau: [architecture.md](architecture.md).
+
+## Phase 0 – Grundgerüst
+
+- [ ] Maven-Projekt (Spigot 26.3-API, Java 25, JUnit 5, Mockito), `plugin.yml`,
+      `config.yml`, `.gitignore`
+- [ ] `InigressoPlugin` mit Startreihenfolge: Konfiguration → Datenbank → Services →
+      Render → Listener/Befehle
+- [ ] `Database`: SQLite-Verbindung, Migration `V1__init.sql`, asynchrone Schreibqueue,
+      sauberes Herunterfahren
+- [ ] `/ig` mit Unterbefehl-Gerüst, Hilfe, Tab-Completion, Permissions
+- **Fertig, wenn:** Plugin startet und stoppt sauber auf Spigot 26.3, DB-Datei wird angelegt.
+
+## Phase 1 – Geometrie (ohne Bukkit)
+
+- [ ] `Vec2`, `Segment`, `Triangle`, `Geometry.crosses`, `area`, `contains`
+- [ ] Sonderfälle testen: gemeinsame Endpunkte, kollineare Segmente, Punkt auf Kante,
+      degenerierte Dreiecke
+- **Fertig, wenn:** Tests grün.
+
+## Phase 2 – Fraktionen und Spielerprofil
+
+- [ ] `PlayerProfile` laden/anlegen beim Join, speichern
+- [ ] `/ig fraktion`, `/ig info`, Größenhinweis
+- [ ] Fraktionsfarbe im Namen (Scoreboard-Team) und im Chat-Präfix
+- [ ] AP und Stufe (`PlayerProgressService`)
+- **Fertig, wenn:** Fraktion überlebt Neustart, Admin-Wechsel funktioniert.
+
+## Phase 3 – Vorschläge und Portale
+
+- [ ] `/ig vorschlagen` mit allen Prüfungen
+- [ ] `/ig vorschlaege`, `tp`, `annehmen`, `ablehnen`, Nachrichten an Offline-Spieler
+- [ ] Portal anlegen: Lodestone, `TextDisplay`, Schutzbereich
+- [ ] `ProtectionListener` (Abbau, Setzen, Explosion, Kolben, Flüssigkeiten)
+- [ ] `/ig portal`, Admin-Portalbefehle
+- **Fertig, wenn:** Ein Spieler schlägt vor, ein Admin nimmt an, das Portal steht
+      geschützt in der Welt und bleibt nach Neustart.
+
+## Phase 4 – Gegenstände, Resonatoren, Hacken
+
+- [ ] Markierte Items (PDC), nicht craftbar, kein Drop beim Tod, Spiel-Inventar
+- [ ] Resonator setzen (Rechtsklick auf Platz), Aufrüsten, Stufenlimits pro Spieler
+- [ ] Erobern eines neutralen Portals, Portalstufe, Anzeige der Resonatorblöcke
+- [ ] Hacken mit Abklingzeit, Loot, Schlüsselchance
+- [ ] `/ig admin geben` für Tests
+- **Fertig, wenn:** Zwei Spieler verschiedener Fraktionen können Portale erobern und
+      hacken.
+
+## Phase 5 – Angriff und Energie
+
+- [ ] Burst: Radius, Schaden mit Abstandsfaktor, Zerstörung, Neutralisierung
+- [ ] Aufladen am Kern und per Schlüssel (XP-Kosten)
+- [ ] Täglicher Verfall inkl. Nachholen nach Ausfall
+- **Fertig, wenn:** Ein Portal lässt sich zerstören und von der anderen Fraktion
+      übernehmen.
+
+## Phase 6 – Links und Felder
+
+- [ ] `LinkService` mit allen Bedingungen aus rules.md §6, Rasterindex für Kreuzungen
+- [ ] Partikeldarstellung
+- [ ] `FieldService`: Felder bei neuem Link, Abbau bei Linkverlust
+- [ ] Bossbar beim Stehen im Feld
+- **Fertig, wenn:** Drei Portale ergeben ein Feld; Zerstören eines Portals entfernt Links
+      und Feld.
+
+## Phase 7 – Wertung
+
+- [ ] Einfluss je Fraktion, stündliche Messpunkte
+- [ ] Wochenzyklus mit Ergebnis, Ankündigung, `/ig stand`, `/ig zyklus [alt]`
+- [ ] Nachholen verpasster Zyklusabschlüsse
+- **Fertig, wenn:** Ein Testzyklus (verkürzt über Konfiguration) ergibt einen Gewinner.
+
+## Phase 8 – Feinschliff und Betrieb
+
+- [ ] Spielanleitung `PLAYER_GUIDE.md` und `ADMIN_GUIDE.md`
+- [ ] Audit-Log für Admin-Eingriffe
+- [ ] Leistungstest: 200 Portale, 500 Links, 20 Spieler
+- [ ] Balancing-Werte nach ersten Testrunden anpassen
+- [ ] GitHub-Release, Eintrag im Plugin-Katalog von minecraftHostingServer
+
+## Später / Ideen
+
+- BlueMap-Overlay mit Portalen, Links und Feldern (karte.cndrbrbr.de)
+- Webseite mit Ranglisten und Zyklusergebnissen
+- Weitere Gegenstände: Schild-Mod (mehr Widerstand), Portal-Virus (Fraktion umdrehen)
+- Missionen: vorgegebene Portalrouten mit Belohnung
+- Mehrere Welten / getrennte Spielfelder
