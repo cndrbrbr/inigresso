@@ -4,6 +4,7 @@ import io.github.cndrbrbr.inigresso.event.GameEvent;
 import io.github.cndrbrbr.inigresso.event.GameEventBus;
 import io.github.cndrbrbr.inigresso.model.Faction;
 import io.github.cndrbrbr.inigresso.model.PlayerProfile;
+import io.github.cndrbrbr.inigresso.service.PlayerProgressService;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -16,15 +17,19 @@ import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 
 /**
- * Fraktionsfarbe im Namen über Teams auf dem Haupt-Scoreboard. Vanilla zeigt Teamfarbe und
- * Präfix in Tabliste, Namensschild und Chat.
+ * Fraktionsfarbe und Stufe im Namen über ein Team je Spieler auf dem Haupt-Scoreboard
+ * (Namensschild: „[Lumen] Name · L3“). Ein Team je Spieler, weil die Stufe als Suffix
+ * pro Spieler verschieden ist. Die Tabliste setzen wir zusätzlich direkt: „Name L3“.
  *
  * <p>Wer die Sidebar ausblendet (/ig scoreboard aus), bekommt ein zweites Scoreboard ohne
  * Sidebar. Darauf liegen dieselben Fraktionsteams, damit die Namensfarben erhalten bleiben.
  */
 public final class FactionTeams {
 
-    private static final String PREFIX = "ig_";
+    /** Alte Teams je Fraktion (bis 0.11.0), werden beim Start entfernt. */
+    private static final String OLD_PREFIX = "ig_";
+    /** Team je Spieler: igp_ + 16 Hex-Zeichen der UUID. */
+    private static final String PREFIX = "igp_";
 
     private final Set<UUID> quiet;
     private final Consumer<Set<UUID>> saveQuiet;
@@ -41,6 +46,7 @@ public final class FactionTeams {
 
     public void bind(GameEventBus bus) {
         bus.subscribe(GameEvent.FactionChanged.class, e -> apply(e.profile()));
+        bus.subscribe(GameEvent.ProfileChanged.class, e -> apply(e.profile()));
     }
 
     private List<Scoreboard> boards() {
@@ -49,37 +55,61 @@ public final class FactionTeams {
 
     public void setup() {
         quietBoard = Bukkit.getScoreboardManager().getNewScoreboard();
-        for (Scoreboard sb : boards()) {
-            for (Faction f : Faction.playable()) {
-                Team t = sb.getTeam(PREFIX + f.key());
-                if (t == null) {
-                    t = sb.registerNewTeam(PREFIX + f.key());
-                }
-                t.setColor(f.color());
-                t.setPrefix(f.color() + "[" + f.displayName() + "] ");
-                t.setAllowFriendlyFire(true);
+        Scoreboard main = Bukkit.getScoreboardManager().getMainScoreboard();
+        for (Faction f : Faction.playable()) {
+            Team old = main.getTeam(OLD_PREFIX + f.key());
+            if (old != null) {
+                old.unregister();
             }
         }
     }
 
+    static String teamName(UUID id) {
+        return PREFIX + id.toString().replace("-", "").substring(0, 16);
+    }
+
+    /** Text hinter dem Namen im Namensschild. */
+    public static String suffix(int level) {
+        return ChatColor.GRAY + " · L" + level;
+    }
+
     public void apply(PlayerProfile p) {
         String entry = p.lastName();
+        String name = teamName(p.uuid());
+        int level = PlayerProgressService.levelFor(p.ap());
         for (Scoreboard sb : boards()) {
-            for (Faction f : Faction.playable()) {
-                Team t = sb.getTeam(PREFIX + f.key());
-                if (t == null) {
-                    continue;
+            Team t = sb.getTeam(name);
+            if (!p.hasFaction()) {
+                if (t != null) {
+                    t.unregister();
                 }
-                if (f == p.faction()) {
-                    t.addEntry(entry);
-                } else if (t.hasEntry(entry)) {
-                    t.removeEntry(entry);
-                }
+                continue;
+            }
+            if (t == null) {
+                t = sb.registerNewTeam(name);
+                t.setAllowFriendlyFire(true);
+            }
+            Faction f = p.faction();
+            if (t.getColor() != f.color()) {
+                t.setColor(f.color());
+            }
+            String prefix = f.color() + "[" + f.displayName() + "] ";
+            if (!prefix.equals(t.getPrefix())) {
+                t.setPrefix(prefix);
+            }
+            if (!suffix(level).equals(t.getSuffix())) {
+                t.setSuffix(suffix(level));
+            }
+            if (!t.hasEntry(entry)) {
+                t.addEntry(entry); // nimmt den Eintrag aus einem anderen Team heraus
             }
         }
         Player online = Bukkit.getPlayer(p.uuid());
-        if (online != null && p.faction() != null) {
-            online.setPlayerListName(p.faction().color() + online.getName() + ChatColor.RESET);
+        if (online != null && p.hasFaction()) {
+            String list = p.faction().color() + online.getName() + ChatColor.GRAY + " L" + level + ChatColor.RESET;
+            if (!list.equals(online.getPlayerListName())) {
+                online.setPlayerListName(list);
+            }
         }
     }
 

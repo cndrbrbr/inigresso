@@ -164,7 +164,11 @@ public final class IgCommand implements TabExecutor {
         sender.sendMessage(ChatColor.GRAY + "Stufe: " + ChatColor.WHITE + PlayerProgressService.levelFor(ap)
                 + ChatColor.GRAY + "  AP: " + ChatColor.WHITE + String.format("%,d", ap)
                 + (next >= 0 ? ChatColor.GRAY + " (noch " + String.format("%,d", next) + " bis zur nächsten Stufe)" : ""));
-        sender.sendMessage(ChatColor.GRAY + "Spiel-Inventar: " + ChatColor.WHITE + "0 / " + plugin.settings().playerMaxItems());
+        Player online = org.bukkit.Bukkit.getPlayer(p.uuid());
+        if (online != null) {
+            sender.sendMessage(ChatColor.GRAY + "Spiel-Inventar: " + ChatColor.WHITE + plugin.gameInventory().count(online)
+                    + " / " + plugin.settings().playerMaxItems());
+        }
     }
 
     private void admin(CommandSender sender, String label, String[] args) {
