@@ -135,6 +135,7 @@ public final class ItemGuardListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onJoin(PlayerJoinEvent e) {
         Player p = e.getPlayer();
+        inventory.refreshKeys(p);
         PlayerProfile profile = profiles.get(p.getUniqueId()).orElse(null);
         if (profile != null && profile.hasFaction()) {
             int removed = inventory.purgeForeign(p, profile.faction());

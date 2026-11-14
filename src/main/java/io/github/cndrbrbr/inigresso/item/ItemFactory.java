@@ -42,6 +42,11 @@ public final class ItemFactory {
         return LEVEL_COLORS[Math.clamp(level, 1, 8) - 1];
     }
 
+    /** Anzeigename eines Schlüssels: „Schlüssel #12: Sonnenhang“ (ohne Namen, wenn das Portal fehlt). */
+    public static String keyName(int portalId, String portalName) {
+        return ChatColor.AQUA + "Schlüssel #" + portalId + (portalName == null ? "" : ": " + portalName);
+    }
+
     public ItemStack create(GameItem item, int amount) {
         Material m = switch (item.type()) {
             case RESONATOR -> Material.AMETHYST_SHARD;
@@ -63,8 +68,8 @@ public final class ItemFactory {
                 lore.add(ChatColor.GRAY + "Resonatoren im Umkreis");
             }
             case KEY -> {
-                String name = portals.get(item.portalId()).map(p -> p.name()).orElse("#" + item.portalId());
-                meta.setDisplayName(ChatColor.AQUA + "Schlüssel: " + name);
+                meta.setDisplayName(keyName(item.portalId(),
+                        portals.get(item.portalId()).map(p -> p.name()).orElse(null)));
                 lore.add(ChatColor.GRAY + "Portal #" + item.portalId());
                 lore.add(ChatColor.GRAY + "Nötig für einen Link zu diesem Portal");
             }

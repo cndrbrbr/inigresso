@@ -278,8 +278,8 @@ public final class IgCommand implements TabExecutor {
         summary.forEach((g, n) -> {
             if (g.type() == io.github.cndrbrbr.inigresso.model.GameItem.Type.KEY) {
                 String name = plugin.portals().get(g.portalId()).map(p -> p.name()).orElse("(gelöscht)");
-                sender.sendMessage(ChatColor.AQUA + "Schlüssel " + ChatColor.WHITE + name + ChatColor.DARK_GRAY
-                        + " #" + g.portalId() + ChatColor.GRAY + " ×" + n);
+                sender.sendMessage(ChatColor.AQUA + "Schlüssel #" + g.portalId() + " " + ChatColor.WHITE + name
+                        + ChatColor.GRAY + " ×" + n);
             }
         });
     }

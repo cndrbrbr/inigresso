@@ -133,4 +133,27 @@ public final class GameInventory {
         }
         return out;
     }
+
+    /**
+     * Schlüssel im Inventar neu beschriften (aktueller Portalname, Format mit Nummer).
+     * Gibt die Anzahl geänderter Stapel zurück.
+     */
+    public int refreshKeys(Player p) {
+        PlayerInventory inv = p.getInventory();
+        int changed = 0;
+        for (int slot = 0; slot < inv.getSize(); slot++) {
+            ItemStack s = inv.getItem(slot);
+            Optional<GameItem> g = items.read(s);
+            if (g.isEmpty() || g.get().type() != GameItem.Type.KEY) {
+                continue;
+            }
+            ItemStack fresh = items.create(g.get(), s.getAmount());
+            if (!fresh.getItemMeta().getDisplayName().equals(s.getItemMeta().getDisplayName())
+                    || !java.util.Objects.equals(fresh.getItemMeta().getLore(), s.getItemMeta().getLore())) {
+                inv.setItem(slot, fresh);
+                changed++;
+            }
+        }
+        return changed;
+    }
 }
