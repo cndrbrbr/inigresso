@@ -106,9 +106,11 @@ läuft. Regeln: [rules.md](rules.md), Aufbau: [architecture.md](architecture.md)
 
 ## Phase 8 – Feinschliff und Betrieb
 
-- [ ] Spielanleitung `PLAYER_GUIDE.md` und `ADMIN_GUIDE.md`
+- [x] Spielanleitung (bebildert, `docs/index.html` → GitHub Pages) und `ADMIN_GUIDE.md`
 - [x] Audit-Log für Admin-Eingriffe (seit 0.2.0)
-- [ ] Leistungstest: 200 Portale, 500 Links, 20 Spieler
+- [x] Leistungstest: 200 Portale, 509 Links, 315 Felder, hochgerechnet auf 20 Spieler
+      (`tools/perf`, 0.9.4): typisch 1–2 %, schlimmstenfalls ~6 % der Tickzeit; Nummern-
+      platzierung dabei von 0,17 auf 0,02 ms beschleunigt. Partikel-Netzlast nicht gemessen.
 - [ ] Balancing-Werte nach ersten Testrunden anpassen
 - [ ] GitHub-Release, Eintrag im Plugin-Katalog von minecraftHostingServer
 

@@ -137,7 +137,7 @@ public final class ScannerRenderer extends MapRenderer {
             }
         }
         drawLabels(canvas, proj, span, s.rotate);
-        drawNumbers(canvas, proj, world, span, target.orElse(null));
+        drawNumbers(canvas, proj, world, span, target.orElse(null), s.rotate);
         drawFaction(canvas, factionOf.apply(player.getUniqueId()));
         canvas.setCursors(cursors(proj, s.rotate, heading, target.filter(t -> t.core().world().equals(world))));
     }
@@ -225,8 +225,13 @@ public final class ScannerRenderer extends MapRenderer {
     }
 
     /** Portalnummern neben den Punkten, ohne Überlappung (siehe ScannerLabels). */
-    private void drawNumbers(MapCanvas canvas, ScannerProjection proj, String world, int span, Portal target) {
-        List<int[]> reserved = List.of(new int[] {0, 0, 32, 10}, new int[] {80, 0, 127, 10});
+    private void drawNumbers(MapCanvas canvas, ScannerProjection proj, String world, int span, Portal target,
+            boolean rotate) {
+        List<int[]> reserved = new java.util.ArrayList<>(List.of(new int[] {0, 0, 32, 10}, new int[] {80, 0, 127, 10}));
+        if (rotate) {
+            int[] n = northLabel(proj);
+            reserved.add(new int[] {n[0] - 2, n[1] - 2, n[0] + 7, n[1] + 9}); // rotes N freihalten
+        }
         for (ScannerLabels.Label l : ScannerLabels.place(proj, world, portals.all(), target, dotSize(span), reserved)) {
             byte c = l.portal().equals(target) ? TARGET : color(l.portal().owner());
             canvas.drawText(l.x(), l.y(), MinecraftFont.Font, "§" + (c & 0xff) + ";" + l.text());
@@ -250,15 +255,19 @@ public final class ScannerRenderer extends MapRenderer {
     private static void drawLabels(MapCanvas canvas, ScannerProjection proj, int span, boolean rotate) {
         canvas.drawText(2, 2, MinecraftFont.Font, "§" + (MapPalette.WHITE & 0xff) + ";" + span + "m");
         if (rotate) {
-            // Wo liegt Norden? Einheitsvektor nach Norden auf dem Bildschirm.
-            double[] n = proj.toScreen(proj.centerX(), proj.centerZ() - proj.blocksPerPixel());
-            double dx = n[0] - ScannerProjection.MID;
-            double dy = n[1] - ScannerProjection.MID;
-            double[] edge = ScannerProjection.clampToEdge(
-                    new double[] {ScannerProjection.MID + dx * 200, ScannerProjection.MID + dy * 200}, 6);
-            canvas.drawText((int) edge[0] - 2, (int) edge[1] - 3, MinecraftFont.Font,
-                    "§" + (MapPalette.RED & 0xff) + ";N");
+            int[] n = northLabel(proj);
+            canvas.drawText(n[0], n[1], MinecraftFont.Font, "§" + (MapPalette.RED & 0xff) + ";N");
         }
+    }
+
+    /** Linke obere Ecke des roten N am Kartenrand in Richtung Norden. */
+    static int[] northLabel(ScannerProjection proj) {
+        double[] n = proj.toScreen(proj.centerX(), proj.centerZ() - proj.blocksPerPixel());
+        double dx = n[0] - ScannerProjection.MID;
+        double dy = n[1] - ScannerProjection.MID;
+        double[] edge = ScannerProjection.clampToEdge(
+                new double[] {ScannerProjection.MID + dx * 200, ScannerProjection.MID + dy * 200}, 6);
+        return new int[] {(int) edge[0] - 2, (int) edge[1] - 3};
     }
 
     private static MapCursorCollection cursors(ScannerProjection proj, boolean rotate, double heading,

@@ -44,21 +44,24 @@ public final class ScannerLabels {
         }
         int mid = (int) ScannerProjection.MID;
         used.add(new Box(mid - 4, mid - 4, mid + 4, mid + 4)); // Spielerpfeil
-        List<Portal> order = portals.stream()
-                .filter(p -> p.core().world().equals(world))
-                .filter(p -> proj.span() <= MAX_SPAN || p.equals(target))
-                .sorted(Comparator.<Portal>comparingInt(p -> p.equals(target) ? 0 : 1)
-                        .thenComparingDouble(p -> {
-                            double[] s = screen(proj, p);
-                            return Math.hypot(s[0] - mid, s[1] - mid);
-                        }))
-                .toList();
-        List<Label> out = new ArrayList<>();
-        for (Portal p : order) {
-            double[] s = screen(proj, p);
-            if (!ScannerProjection.visible(s, 0)) {
+        // Bildposition nur einmal je Portal rechnen, unsichtbare gleich verwerfen.
+        record Spot(Portal p, double x, double y, double d) {
+        }
+        List<Spot> order = new ArrayList<>();
+        for (Portal p : portals) {
+            if (!p.core().world().equals(world) || (proj.span() > MAX_SPAN && !p.equals(target))) {
                 continue;
             }
+            double[] s = screen(proj, p);
+            if (ScannerProjection.visible(s, 0)) {
+                order.add(new Spot(p, s[0], s[1], p.equals(target) ? -1 : Math.hypot(s[0] - mid, s[1] - mid)));
+            }
+        }
+        order.sort(Comparator.comparingDouble(Spot::d));
+        List<Label> out = new ArrayList<>();
+        for (Spot spot : order) {
+            Portal p = spot.p();
+            double[] s = {spot.x(), spot.y()};
             String text = String.valueOf(p.id());
             int w = width(text);
             int gap = (int) Math.ceil(dot) + 2;

@@ -5,6 +5,8 @@ Portale, verbinden sie mit Links und spannen Felder auf.
 - [rules.md](rules.md) – Spielregeln
 - [architecture.md](architecture.md) – Aufbau des Plugins
 - [implement.md](implement.md) – Umsetzungsplan und Stand
+- [ADMIN_GUIDE.md](ADMIN_GUIDE.md) – Installation, Konfiguration, Admin-Befehle, Sicherung
+- Spieleranleitung: <https://cndrbrbr.github.io/inigresso/>
 
 Bauen:
 
