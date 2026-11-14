@@ -29,6 +29,9 @@ public final class IgCommand implements TabExecutor {
             new Sub("fraktion", false, "[lumen|waechter]", "Fraktion wählen (einmalig)", 2),
             new Sub("info", false, "", "Eigene Stufe, AP und Fraktion", 2),
             new Sub("portal", false, "", "Infos zum nächsten Portal", 3),
+            new Sub("karte", false, "[radius]", "Nächste Portale, anklickbar als Ziel", 8),
+            new Sub("ziel", false, "<Portal|aus>", "Navigation zu einem Portal", 8),
+            new Sub("scanner", false, "[zoom|norden|drehen]", "Scanner-Karte holen/einstellen", 8),
             new Sub("vorschlagen", false, "<Name>", "Portal vorschlagen", 3),
             new Sub("link", false, "<Portal>", "Link vom aktuellen Portal ziehen", 6),
             new Sub("aufladen", false, "<Portal>", "Portal per Schlüssel aufladen", 5),
@@ -44,10 +47,12 @@ public final class IgCommand implements TabExecutor {
 
     private final InigressoPlugin plugin;
     private final PortalCommands portalCommands;
+    private final NavCommands nav;
 
     public IgCommand(InigressoPlugin plugin) {
         this.plugin = plugin;
         this.portalCommands = new PortalCommands(plugin);
+        this.nav = new NavCommands(plugin);
     }
 
     @Override
@@ -78,6 +83,9 @@ public final class IgCommand implements TabExecutor {
             case "ablehnen" -> portalCommands.reject(sender, label, args);
             case "portal" -> portalCommands.portalInfo(sender);
             case "inventar" -> inventory(sender);
+            case "karte" -> nav.map(sender, label, args);
+            case "ziel" -> nav.target(sender, label, args);
+            case "scanner" -> nav.scanner(sender, label, args);
             case "aufladen" -> recharge(sender, label, args);
             case "link" -> link(sender, label, args);
             case "stand" -> standing(sender);
@@ -493,6 +501,15 @@ public final class IgCommand implements TabExecutor {
                     .map(g -> "#" + g.portalId()).toList(), args[1]);
         } else if (args.length == 2 && args[0].equalsIgnoreCase("zyklus")) {
             filter(out, List.of("alt"), args[1]);
+        } else if (args.length == 2 && args[0].equalsIgnoreCase("ziel")) {
+            List<String> opts = new ArrayList<>(List.of("aus"));
+            plugin.portals().all().forEach(p -> opts.add("#" + p.id()));
+            filter(out, opts, args[1]);
+        } else if (args.length == 2 && args[0].equalsIgnoreCase("scanner")) {
+            filter(out, List.of("zoom", "norden", "drehen"), args[1]);
+        } else if (args.length == 3 && args[0].equalsIgnoreCase("scanner") && args[1].equalsIgnoreCase("zoom")) {
+            filter(out, java.util.Arrays.stream(io.github.cndrbrbr.inigresso.render.ScannerRenderer.ZOOMS)
+                    .mapToObj(String::valueOf).toList(), args[2]);
         } else if (args.length == 2 && args[0].equalsIgnoreCase("aufladen")) {
             filter(out, plugin.portals().all().stream().map(p -> "#" + p.id()).toList(), args[1]);
         } else if (sender.hasPermission("inigresso.admin")) {

@@ -181,8 +181,8 @@ außerhalb des Spiels nachgemacht werden.
 - Entsteht durch einen neuen Link mehr als ein mögliches Feld, werden auf jeder Seite
   des Links das größte mögliche Feld erzeugt (höchstens 2 Felder pro Link).
 - Wer unter einem Feld steht, sieht eine Bossbar in Fraktionsfarbe mit Einfluss und Zahl
-  der Schichten. Neue Felder werden allen Spielern im Chat gemeldet. (Anzeige auf der
-  Karte: später, siehe implement.md.)
+  der Schichten. Neue Felder werden allen Spielern im Chat gemeldet. Auf dem Scanner
+  (§9a) erscheinen Felder als gerasterte Fläche in Fraktionsfarbe.
 - Ein Feld zerfällt, sobald einer seiner drei Links verschwindet.
 
 ## 8. Wertung
@@ -219,6 +219,25 @@ außerhalb des Spiels nachgemacht werden.
 Stufen: 1 = 0 AP, 2 = 2 500, 3 = 20 000, 4 = 70 000, 5 = 150 000, 6 = 300 000,
 7 = 600 000, 8 = 1 200 000.
 
+## 9a. Scanner und Navigation
+
+- Jeder Spieler bekommt bei der Fraktionswahl einen **Scanner**: eine Karte, die das Plugin
+  selbst zeichnet. Verloren? `/ig scanner` gibt einen neuen. Beim Tod bleibt er erhalten.
+- Der Scanner zeigt auf dunklem Hintergrund mit Gitter **alle** Portale (Punkte in
+  Fraktionsfarbe, neutral grau), alle Links (Linien) und Felder (gerasterte Flächen).
+  Der Spieler ist der Pfeil in der Mitte.
+- Standard: Blickrichtung oben, ein rotes **N** am Rand zeigt Norden. `/ig scanner norden`
+  stellt auf „Norden oben“ um, `/ig scanner drehen` zurück.
+- Zoom (Kartenbreite 128, 256, 512 oder 1024 Blöcke): **Schleichen + Rechtsklick** mit dem
+  Scanner in der Hand (nicht auf einen Portalkern), oder `/ig scanner zoom <Blöcke>`.
+- In der Nebenhand bleibt der Scanner beim Laufen sichtbar.
+- `/ig karte [radius]` listet die zehn nächsten Portale mit Entfernung, Himmelsrichtung,
+  Fraktion und Stufe. Ein Klick auf eine Zeile setzt das Portal als **Ziel**.
+- Mit Ziel (`/ig ziel <Portal|#id>`) zeigt die Actionbar einen Pfeil relativ zur
+  Blickrichtung und die Entfernung; auf dem Scanner ist das Ziel markiert (am Rand, wenn
+  es außerhalb liegt). Ab 5 Blöcken gilt es als erreicht. `/ig ziel aus` beendet die
+  Navigation. Ziel und Scanner-Einstellungen gelten nur bis zum Ausloggen.
+
 ## 10. Befehle
 
 ### Spieler (`inigresso.use`, Standard: alle)
@@ -232,6 +251,9 @@ Stufen: 1 = 0 AP, 2 = 2 500, 3 = 20 000, 4 = 70 000, 5 = 150 000, 6 = 300 000,
 | `/ig link <Schlüssel-Portal>` | Link vom aktuellen Portal ziehen |
 | `/ig aufladen <Portal>` | Portal über Schlüssel aufladen |
 | `/ig inventar` | Übersicht der eigenen Spielgegenstände |
+| `/ig karte [radius]` | Die zehn nächsten Portale; Klick setzt das Ziel |
+| `/ig ziel <Portal\|#id\|aus>` | Navigation zu einem Portal starten/beenden |
+| `/ig scanner [zoom <Blöcke>\|norden\|drehen]` | Scanner holen bzw. einstellen |
 | `/ig stand` | Aktueller Einfluss beider Fraktionen, Zyklusstand |
 | `/ig zyklus [alt]` | Ergebnis laufender/vergangener Zyklen |
 

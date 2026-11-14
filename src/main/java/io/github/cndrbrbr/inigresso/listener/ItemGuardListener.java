@@ -40,6 +40,8 @@ public final class ItemGuardListener implements Listener {
     private final ProfileService profiles;
     /** Beim Tod einbehaltene Spielgegenstände bis zum Respawn. */
     private final Map<UUID, List<ItemStack>> kept = new HashMap<>();
+    /** Weitere Gegenstände, die beim Tod behalten werden (Scanner). */
+    private java.util.function.Predicate<ItemStack> keepAlso = s -> false;
 
     public ItemGuardListener(ItemFactory items, GameInventory inventory, ProfileService profiles, GameEventBus bus) {
         this.items = items;
@@ -51,6 +53,10 @@ public final class ItemGuardListener implements Listener {
                 inventory.purgeForeign(p, e.profile().faction());
             }
         });
+    }
+
+    public void keepAlso(java.util.function.Predicate<ItemStack> keep) {
+        this.keepAlso = keep;
     }
 
     /** Feuerkugel/Trial Key nicht vanilla benutzen. Portalkern-Klicks behandelt PortalInteractListener. */
@@ -108,7 +114,7 @@ public final class ItemGuardListener implements Listener {
         List<ItemStack> mine = new ArrayList<>();
         for (Iterator<ItemStack> it = e.getDrops().iterator(); it.hasNext(); ) {
             ItemStack s = it.next();
-            if (items.isGameItem(s)) {
+            if (items.isGameItem(s) || keepAlso.test(s)) {
                 mine.add(s);
                 it.remove();
             }

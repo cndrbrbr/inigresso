@@ -121,7 +121,12 @@ hören darauf, Services kennen beide nicht direkt.
   für Abschnitte im Umkreis von 64 Blöcken um Spieler.
 - Felder: Bossbar „Feld der Lumen – 1 234 Einfluss“, wenn der Spieler darin steht
   (Prüfung alle 20 Ticks).
-- Optional später: BlueMap-Marker (Portale, Links, Felder als Overlay), siehe
+- Scanner: `ScannerRenderer` (kontextbezogener `MapRenderer`, eine gemeinsame Karten-ID in
+  `state.scanner_map`). Bild wird ohne Bukkit in `ScannerImage` gezeichnet
+  (`ScannerProjection`: Welt → Pixel, gedreht oder Norden oben), neu höchstens alle 100 ms
+  und nur bei Bewegung/Drehung, sonst einmal pro Sekunde. Ziel-Navigation in `Navigator`
+  (Actionbar alle 10 Ticks).
+- Optional später: Webkarte / BlueMap-Marker (Portale, Links, Felder als Overlay), siehe
   `implement.md`.
 
 ## 6. Schutz (`listener/ProtectionListener`)

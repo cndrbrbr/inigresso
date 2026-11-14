@@ -70,6 +70,10 @@ public final class InigressoPlugin extends JavaPlugin {
     private java.util.Set<String> autoDone;
     private ScoreService score;
     private ScoreRepository scoreRepo;
+    private StateRepository state;
+    private io.github.cndrbrbr.inigresso.render.Navigator navigator;
+    private io.github.cndrbrbr.inigresso.render.ScannerRenderer scannerRenderer;
+    private io.github.cndrbrbr.inigresso.item.Scanner scanner;
     private final Clock clock = Clock.systemDefaultZone();
 
     @Override
@@ -101,7 +105,7 @@ public final class InigressoPlugin extends JavaPlugin {
                             settings.hackKeyChance()),
                     progress, hackRepo.loadSince(clock.millis() - HackService.WINDOW_MS));
             combat = new CombatService(portals, progress, bus, () -> settings.resonatorRadius());
-            StateRepository state = new StateRepository(database);
+            state = new StateRepository(database);
             LinkRepository linkRepo = new LinkRepository(database);
             linkRepo.bind(bus);
             links = new LinkService(portals, progress, bus, clock,
@@ -153,14 +157,34 @@ public final class InigressoPlugin extends JavaPlugin {
         gameInventory = new GameInventory(itemFactory, () -> settings.playerMaxItems());
         portalInteract = new PortalInteractListener(portals, hacks, profiles, itemFactory, gameInventory, combat, energy);
         getServer().getPluginManager().registerEvents(portalInteract, this);
-        getServer().getPluginManager().registerEvents(
-                new ItemGuardListener(itemFactory, gameInventory, profiles, bus), this);
+        ItemGuardListener guard = new ItemGuardListener(itemFactory, gameInventory, profiles, bus);
+        getServer().getPluginManager().registerEvents(guard, this);
         getServer().getPluginManager().registerEvents(
                 new PlayerConnectionListener(profiles, teams, messages, clock, bus), this);
         network = new NetworkRenderer(links, portals, () -> settings.linkBeamHeight());
         getServer().getScheduler().runTaskTimer(this, network::drawLinks, 10L, 10L);
         getServer().getScheduler().runTaskTimer(this, network::drawFields, 15L, 10L);
         getServer().getScheduler().runTaskTimer(this, network::updateBars, 20L, 20L);
+        // Scanner-Karte und Navigation (/ig karte, /ig ziel, /ig scanner)
+        navigator = new io.github.cndrbrbr.inigresso.render.Navigator(portals);
+        scannerRenderer = new io.github.cndrbrbr.inigresso.render.ScannerRenderer(portals, links, navigator);
+        scanner = new io.github.cndrbrbr.inigresso.item.Scanner(this, scannerRenderer);
+        long storedMap;
+        try {
+            storedMap = state.getLong("scanner_map", -1);
+        } catch (SQLException e) {
+            getLogger().log(Level.WARNING, "Karten-ID des Scanners nicht lesbar, lege neue an.", e);
+            storedMap = -1;
+        }
+        int mapId = scanner.setup(storedMap);
+        if (mapId != storedMap) {
+            state.set("scanner_map", Integer.toString(mapId));
+            getLogger().info("Scanner-Karte #" + mapId + " angelegt.");
+        }
+        guard.keepAlso(scanner::isScanner);
+        getServer().getPluginManager().registerEvents(
+                new io.github.cndrbrbr.inigresso.listener.ScannerListener(scanner, scannerRenderer, navigator, bus), this);
+        getServer().getScheduler().runTaskTimer(this, navigator::tick, 10L, 10L);
         // Verfall: verpasste Tage sofort nachholen, dann jede Minute prüfen.
         int missed = energy.tick();
         if (missed > 0) {
@@ -177,6 +201,7 @@ public final class InigressoPlugin extends JavaPlugin {
         // Nach /reload sind Spieler schon online.
         for (Player p : getServer().getOnlinePlayers()) {
             teams.apply(profiles.join(p.getUniqueId(), p.getName()));
+            scanner.fix(p);
         }
 
         IgCommand ig = new IgCommand(this);
@@ -263,6 +288,18 @@ public final class InigressoPlugin extends JavaPlugin {
 
     public LinkService links() {
         return links;
+    }
+
+    public io.github.cndrbrbr.inigresso.render.Navigator navigator() {
+        return navigator;
+    }
+
+    public io.github.cndrbrbr.inigresso.render.ScannerRenderer scannerRenderer() {
+        return scannerRenderer;
+    }
+
+    public io.github.cndrbrbr.inigresso.item.Scanner scanner() {
+        return scanner;
     }
 
     public PortalInteractListener portalInteract() {

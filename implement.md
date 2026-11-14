@@ -85,6 +85,17 @@ läuft. Regeln: [rules.md](rules.md), Aufbau: [architecture.md](architecture.md)
       ✔ 0.7.0: unit-getestet inkl. Kurzzyklus und Nachholen; auf Spigot 26.3 geprüft
       (Nachholen zweier Zyklen, /ig stand, /ig zyklus alt).
 
+## Phase 7b – Scanner und Navigation
+
+- [x] Scanner-Karte (`ScannerRenderer`, kontextbezogener `MapRenderer` auf einer gemeinsamen
+      Karten-ID in der state-Tabelle): dunkler Hintergrund, Gitter, alle Portale, Links,
+      Felder; gedreht oder Norden oben; Zoom 128–1024 Blöcke
+- [x] Ausgabe bei Fraktionswahl, `/ig scanner`, bleibt beim Tod erhalten
+- [x] `/ig karte` (anklickbare Liste) und `/ig ziel` (Actionbar-Pfeil, Zielmarke auf dem Scanner)
+- **Fertig, wenn:** Scanner zeigt im Spiel Portale/Links/Felder richtig herum.
+      0.8.0: Projektion, Raster und Kompass unit-getestet, Vorschaubild mit mc2-Daten
+      geprüft, Start/Neustart auf Spigot 26.3 (Karten-ID bleibt); im Spiel noch zu prüfen.
+
 ## Phase 8 – Feinschliff und Betrieb
 
 - [ ] Spielanleitung `PLAYER_GUIDE.md` und `ADMIN_GUIDE.md`
@@ -95,7 +106,8 @@ läuft. Regeln: [rules.md](rules.md), Aufbau: [architecture.md](architecture.md)
 
 ## Später / Ideen
 
-- BlueMap-Overlay mit Portalen, Links und Feldern (karte.cndrbrbr.de)
+- Webkarte (Leaflet) mit Portalen, Links, Feldern und Zyklusstand aus der SQLite-Datenbank;
+  mit Weltkarte darunter über BlueMap-Overlay
 - Webseite mit Ranglisten und Zyklusergebnissen
 - Weitere Gegenstände: Schild-Mod (mehr Widerstand), Portal-Virus (Fraktion umdrehen)
 - Missionen: vorgegebene Portalrouten mit Belohnung
