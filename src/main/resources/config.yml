@@ -43,3 +43,8 @@ auto-portals:
   enabled: false
   spacing: 100
   jitter: 25
+
+# Scoreboard rechts am Bildschirm für alle Spieler: Fläche, Einfluss, Portale und
+# Eroberungen beider Fraktionen, Restzeit des Zyklus, Top-Eroberer.
+scoreboard:
+  enabled: true

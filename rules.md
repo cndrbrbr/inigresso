@@ -219,6 +219,17 @@ außerhalb des Spiels nachgemacht werden.
 Stufen: 1 = 0 AP, 2 = 2 500, 3 = 20 000, 4 = 70 000, 5 = 150 000, 6 = 300 000,
 7 = 600 000, 8 = 1 200 000.
 
+## 8a. Scoreboard
+
+- Rechts am Bildschirm sehen alle Spieler den Stand des laufenden Zyklus: Restzeit, je
+  Fraktion die **Fläche** aller Felder (Blöcke², überlappende Schichten zählen mehrfach),
+  den **Einfluss** jetzt und im Zyklus-Durchschnitt (Ø, entscheidet über den Sieg), die
+  Zahl der gehaltenen **Portale** und der **Eroberungen** im Zyklus. Die führende Fraktion
+  (höherer Ø) ist mit ★ markiert.
+- **Eroberung** = ein neutrales Portal bekommt seinen ersten Resonator. Darunter stehen die
+  drei Spieler mit den meisten Eroberungen im Zyklus (Top-Eroberer).
+- Abschaltbar mit `scoreboard.enabled: false` in der config.yml.
+
 ## 9a. Scanner und Navigation
 
 - Jeder Spieler bekommt bei der Fraktionswahl einen **Scanner**: eine Karte, die das Plugin

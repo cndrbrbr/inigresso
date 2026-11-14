@@ -30,7 +30,8 @@ public record InigressoConfig(
         int measureMinutes,
         boolean autoPortals,
         int autoSpacing,
-        int autoJitter) {
+        int autoJitter,
+        boolean scoreboard) {
 
     private static final List<Material> DEFAULT_BLOCKS = List.of(
             Material.COPPER_BLOCK, Material.IRON_BLOCK, Material.GOLD_BLOCK, Material.REDSTONE_BLOCK,
@@ -59,7 +60,8 @@ public record InigressoConfig(
                 Math.max(1, c.getInt("cycle.measure-minutes", 60)),
                 c.getBoolean("auto-portals.enabled", false),
                 Math.max(16, c.getInt("auto-portals.spacing", 100)),
-                Math.max(0, c.getInt("auto-portals.jitter", 25)));
+                Math.max(0, c.getInt("auto-portals.jitter", 25)),
+                c.getBoolean("scoreboard.enabled", true));
     }
 
     private static List<Material> blocks(List<String> names, java.util.logging.Logger log) {

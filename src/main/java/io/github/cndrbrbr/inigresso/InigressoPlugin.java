@@ -74,6 +74,8 @@ public final class InigressoPlugin extends JavaPlugin {
     private io.github.cndrbrbr.inigresso.render.Navigator navigator;
     private io.github.cndrbrbr.inigresso.render.ScannerRenderer scannerRenderer;
     private io.github.cndrbrbr.inigresso.item.Scanner scanner;
+    private io.github.cndrbrbr.inigresso.service.CaptureStats captures;
+    private io.github.cndrbrbr.inigresso.render.Sidebar sidebar;
     private final Clock clock = Clock.systemDefaultZone();
 
     @Override
@@ -125,6 +127,10 @@ public final class InigressoPlugin extends JavaPlugin {
                     () -> new ProposalService.Rules(settings.worlds(), settings.portalMinDistance(),
                             settings.proposalMinLevel(), settings.proposalMaxOpen()),
                     portals, progress, profiles, portalRepo.loadProposals());
+            var captureRepo = new io.github.cndrbrbr.inigresso.store.CaptureRepository(database);
+            captureRepo.bind(bus);
+            captures = new io.github.cndrbrbr.inigresso.service.CaptureStats(bus,
+                    captureRepo.loadSince(score.cycleStart()));
             autoCells = new AutoCellRepository(database);
             autoDone = autoCells.loadDone();
             getLogger().info(profiles.all().size() + " Spielerprofile, " + portals.all().size() + " Portale, "
@@ -185,6 +191,8 @@ public final class InigressoPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(
                 new io.github.cndrbrbr.inigresso.listener.ScannerListener(scanner, scannerRenderer, navigator, bus), this);
         getServer().getScheduler().runTaskTimer(this, navigator::tick, 10L, 10L);
+        sidebar = new io.github.cndrbrbr.inigresso.render.Sidebar();
+        getServer().getScheduler().runTaskTimer(this, this::updateSidebar, 40L, 20L);
         // Verfall: verpasste Tage sofort nachholen, dann jede Minute prüfen.
         int missed = energy.tick();
         if (missed > 0) {
@@ -216,6 +224,9 @@ public final class InigressoPlugin extends JavaPlugin {
         }
         if (network != null) {
             network.removeAll();
+        }
+        if (sidebar != null) {
+            sidebar.remove();
         }
         if (database != null) {
             database.close();
@@ -304,6 +315,33 @@ public final class InigressoPlugin extends JavaPlugin {
 
     public PortalInteractListener portalInteract() {
         return portalInteract;
+    }
+
+    private void updateSidebar() {
+        if (!settings.scoreboard()) {
+            sidebar.remove();
+            return;
+        }
+        long since = score.cycleStart();
+        captures.prune(since);
+        var st = score.standing();
+        sidebar.show(new io.github.cndrbrbr.inigresso.render.Sidebar.Data(
+                score.cycleEnd() - clock.millis(),
+                side(io.github.cndrbrbr.inigresso.model.Faction.LUMEN, st.lumenAvg(), since),
+                side(io.github.cndrbrbr.inigresso.model.Faction.WAECHTER, st.waechterAvg(), since),
+                captures.top(since, 3).stream()
+                        .map(e -> new io.github.cndrbrbr.inigresso.render.Sidebar.Top(
+                                profiles.get(e.player()).map(p -> p.lastName()).orElse("?"), e.count()))
+                        .toList()));
+    }
+
+    private io.github.cndrbrbr.inigresso.render.Sidebar.Side side(io.github.cndrbrbr.inigresso.model.Faction f,
+            double average, long since) {
+        double area = links.fields().stream().filter(x -> x.faction() == f)
+                .mapToDouble(x -> links.triangle(x).map(t -> t.area()).orElse(0.0)).sum();
+        int owned = (int) portals.all().stream().filter(p -> p.owner() == f).count();
+        return new io.github.cndrbrbr.inigresso.render.Sidebar.Side(f, area, score.influenceNow(f), average, owned,
+                captures.count(f, since));
     }
 
     /** Admin-Eingriffe protokollieren (rules.md §11). */

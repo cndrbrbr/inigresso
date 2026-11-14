@@ -25,7 +25,7 @@ public final class Database implements AutoCloseable {
 
     /** Migrationen in Reihenfolge, Ressourcen unter /db/. Neue nur anhängen. */
     static final List<String> MIGRATIONS = List.of("V1__init.sql", "V2__portal_proposer.sql", "V3__state.sql", "V4__cycle_details.sql",
-            "V5__auto_cell.sql");
+            "V5__auto_cell.sql", "V6__capture_log.sql");
 
     /** Ein Schreibauftrag, läuft im Hintergrund-Thread in einer eigenen Transaktion. */
     @FunctionalInterface

@@ -39,6 +39,10 @@ public sealed interface GameEvent {
         }
     }
 
+    /** Neutrales Portal von einer Fraktion erobert (erster Resonator). */
+    record PortalCaptured(int portalId, UUID player, Faction faction, long timestamp) implements GameEvent {
+    }
+
     /** Portal gelöscht. */
     record PortalRemoved(Portal portal) implements GameEvent {
     }

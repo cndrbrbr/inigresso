@@ -142,6 +142,7 @@ public final class PortalService {
         p.setResonator(slot, Resonator.full(level, by.uuid()));
         bus.publish(new GameEvent.PortalChanged(p, p.core(), false));
         if (capture) {
+            bus.publish(new GameEvent.PortalCaptured(p.id(), by.uuid(), by.faction(), p.capturedAt()));
             progress.award(by, PlayerProgressService.Action.CAPTURE_PORTAL);
         }
         progress.award(by, upgrade ? PlayerProgressService.Action.UPGRADE_RESONATOR

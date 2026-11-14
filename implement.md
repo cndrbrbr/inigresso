@@ -96,6 +96,14 @@ läuft. Regeln: [rules.md](rules.md), Aufbau: [architecture.md](architecture.md)
       0.8.0: Projektion, Raster und Kompass unit-getestet, Vorschaubild mit mc2-Daten
       geprüft, Start/Neustart auf Spigot 26.3 (Karten-ID bleibt); im Spiel noch zu prüfen.
 
+## Phase 7c – Scoreboard
+
+- [x] Eroberungs-Log (`capture_log`, Migration V6, Ereignis `PortalCaptured`)
+- [x] Sidebar für alle: Restzeit, Fläche, Einfluss (jetzt/Ø), Portale, Eroberungen je
+      Fraktion, Top-3-Eroberer; `scoreboard.enabled`
+- **Fertig, wenn:** Sidebar aktualisiert sich ohne Flackern. 0.9.0: unit-getestet, auf
+      Spigot 26.3 gestartet; im Spiel noch zu prüfen.
+
 ## Phase 8 – Feinschliff und Betrieb
 
 - [ ] Spielanleitung `PLAYER_GUIDE.md` und `ADMIN_GUIDE.md`
