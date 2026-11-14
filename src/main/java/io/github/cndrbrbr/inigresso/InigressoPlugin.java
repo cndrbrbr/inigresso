@@ -173,7 +173,8 @@ public final class InigressoPlugin extends JavaPlugin {
         getServer().getScheduler().runTaskTimer(this, network::updateBars, 20L, 20L);
         // Scanner-Karte und Navigation (/ig karte, /ig ziel, /ig scanner)
         navigator = new io.github.cndrbrbr.inigresso.render.Navigator(portals);
-        scannerRenderer = new io.github.cndrbrbr.inigresso.render.ScannerRenderer(portals, links, navigator);
+        scannerRenderer = new io.github.cndrbrbr.inigresso.render.ScannerRenderer(portals, links, navigator,
+                id -> profiles.get(id).map(pr -> pr.faction()).orElse(null));
         scanner = new io.github.cndrbrbr.inigresso.item.Scanner(this, scannerRenderer);
         long storedMap;
         try {

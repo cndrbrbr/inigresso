@@ -56,6 +56,9 @@ freigegeben.
 
 - Der **Kern** ist ein Leitstein (Lodestone). Darüber schwebt eine Textanzeige mit
   Name, Fraktion, Portalstufe und Besitzer.
+- Der Leitstein leuchtet mit einem Umriss in Fraktionsfarbe (Lumen grün, Wächter blau,
+  neutral grau), auch durch Wände sichtbar. Die eigene Fraktion steht am Namen
+  (`[Lumen]`/`[Wächter]`), oben rechts auf dem Scanner und beim Einloggen im Chat.
 - Rund um den Kern gibt es **8 Resonator-Plätze** (N, NO, O, SO, S, SW, W, NW) im
   Abstand 3. Ein besetzter Platz zeigt einen schwebenden, halb großen Block passend zur
   Resonatorstufe, der in der Fraktionsfarbe leuchtet. Die Welt wird dabei nicht verändert,

@@ -43,6 +43,8 @@ public final class PortalRenderer implements Listener {
     private final PortalService portals;
     private final Map<Integer, TextDisplay> labels = new HashMap<>();
     private final Map<Integer, BlockDisplay[]> resonators = new HashMap<>();
+    /** Leuchtende Hülle um den Leitstein in Fraktionsfarbe. */
+    private final Map<Integer, BlockDisplay> glows = new HashMap<>();
     private final IntSupplier resonatorRadius;
     private final Supplier<List<Material>> resonatorBlocks;
 
@@ -58,12 +60,14 @@ public final class PortalRenderer implements Listener {
                 clearCore(e.previousCore());
             }
             placeCore(e.portal());
+            updateGlow(e.portal());
             updateLabel(e.portal());
             updateResonators(e.portal());
         });
         bus.subscribe(GameEvent.PortalRemoved.class, e -> {
             removeLabel(e.portal().id());
             removeResonators(e.portal().id());
+            removeGlow(e.portal().id());
             clearCore(e.portal().core());
         });
     }
@@ -74,6 +78,7 @@ public final class PortalRenderer implements Listener {
             World w = Bukkit.getWorld(p.core().world());
             if (w != null && w.isChunkLoaded(p.core().x() >> 4, p.core().z() >> 4)) {
                 placeCore(p);
+                updateGlow(p);
                 updateLabel(p);
                 updateResonators(p);
             }
@@ -91,6 +96,8 @@ public final class PortalRenderer implements Listener {
             }
         }
         resonators.clear();
+        glows.values().forEach(Entity::remove);
+        glows.clear();
     }
 
     /** Nach reload (Radius/Blöcke geändert): alles neu aufbauen. */
@@ -110,6 +117,7 @@ public final class PortalRenderer implements Listener {
         for (Portal p : portals.coresInChunk(c.getWorld().getName(), c.getX(), c.getZ())) {
             // Fehlender Kern (z. B. importierte Portale, WorldEdit) wird ergänzt.
             placeCore(p);
+            updateGlow(p);
             updateLabel(p);
             updateResonators(p);
         }
@@ -155,7 +163,7 @@ public final class PortalRenderer implements Listener {
     }
 
     private boolean isTracked(Entity e) {
-        if (labels.containsValue(e)) {
+        if (labels.containsValue(e) || glows.containsValue(e)) {
             return true;
         }
         for (BlockDisplay[] arr : resonators.values()) {
@@ -205,7 +213,53 @@ public final class PortalRenderer implements Listener {
             }
             d.setBlock(data);
             d.setGlowing(true);
-            d.setGlowColorOverride(p.owner() == Faction.LUMEN ? org.bukkit.Color.LIME : org.bukkit.Color.BLUE);
+            d.setGlowColorOverride(glowColor(p.owner()));
+        }
+    }
+
+    /** Farbe des Leuchtens: Lumen grün, Wächter blau, neutral grau. */
+    static org.bukkit.Color glowColor(Faction f) {
+        return switch (f) {
+            case LUMEN -> org.bukkit.Color.LIME;
+            case WAECHTER -> org.bukkit.Color.fromRGB(0x3c, 0x6e, 0xff);
+            case NEUTRAL -> org.bukkit.Color.fromRGB(0xb0, 0xb0, 0xb0);
+        };
+    }
+
+    /**
+     * Ein leicht vergrößerter, voll beleuchteter Leitstein als BlockDisplay über dem echten
+     * Kern, mit Leuchtumriss in Fraktionsfarbe (auch durch Wände sichtbar).
+     */
+    private void updateGlow(Portal p) {
+        World w = Bukkit.getWorld(p.core().world());
+        if (w == null || !w.isChunkLoaded(p.core().x() >> 4, p.core().z() >> 4)) {
+            return;
+        }
+        float scale = 1.02f;
+        float shift = (scale - 1f) / 2f;
+        Location at = new Location(w, p.core().x() - shift, p.core().y() - shift, p.core().z() - shift);
+        BlockDisplay d = glows.get(p.id());
+        if (d == null || !d.isValid()) {
+            d = w.spawn(at, BlockDisplay.class, bd -> {
+                bd.setPersistent(false);
+                bd.addScoreboardTag(TAG);
+                bd.setBlock(Material.LODESTONE.createBlockData());
+                bd.setTransformation(new Transformation(new Vector3f(), new AxisAngle4f(),
+                        new Vector3f(scale, scale, scale), new AxisAngle4f()));
+                bd.setBrightness(new Display.Brightness(15, 15));
+                bd.setGlowing(true);
+            });
+            glows.put(p.id(), d);
+        } else if (!d.getLocation().toVector().equals(at.toVector())) {
+            d.teleport(at);
+        }
+        d.setGlowColorOverride(glowColor(p.owner()));
+    }
+
+    private void removeGlow(int portalId) {
+        BlockDisplay d = glows.remove(portalId);
+        if (d != null) {
+            d.remove();
         }
     }
 

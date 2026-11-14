@@ -48,6 +48,7 @@ public final class ScannerRenderer extends MapRenderer {
     private final PortalService portals;
     private final LinkService links;
     private final Navigator navigator;
+    private final java.util.function.Function<UUID, Faction> factionOf;
     private final Map<UUID, Settings> settings = new HashMap<>();
 
     /** Einstellungen eines Spielers (nur im Speicher). */
@@ -58,11 +59,13 @@ public final class ScannerRenderer extends MapRenderer {
         long lastAt;
     }
 
-    public ScannerRenderer(PortalService portals, LinkService links, Navigator navigator) {
+    public ScannerRenderer(PortalService portals, LinkService links, Navigator navigator,
+            java.util.function.Function<UUID, Faction> factionOf) {
         super(true);
         this.portals = portals;
         this.links = links;
         this.navigator = navigator;
+        this.factionOf = factionOf;
     }
 
     private Settings of(Player p) {
@@ -133,6 +136,7 @@ public final class ScannerRenderer extends MapRenderer {
             }
         }
         drawLabels(canvas, proj, span, s.rotate);
+        drawFaction(canvas, factionOf.apply(player.getUniqueId()));
         canvas.setCursors(cursors(proj, s.rotate, heading, target.filter(t -> t.core().world().equals(world))));
     }
 
@@ -216,6 +220,16 @@ public final class ScannerRenderer extends MapRenderer {
             double[] b = proj.toScreen(maxX, gz);
             img.line(a[0], a[1], b[0], b[1], GRID);
         }
+    }
+
+    /** Eigene Fraktion oben rechts, damit jeder sieht, wozu er gehört. */
+    private static void drawFaction(MapCanvas canvas, Faction f) {
+        if (f == null || f == Faction.NEUTRAL) {
+            return;
+        }
+        String name = MinecraftFont.Font.isValid(f.displayName()) ? f.displayName() : f.key();
+        int w = MinecraftFont.Font.getWidth(name);
+        canvas.drawText(ScannerImage.SIZE - 2 - w, 2, MinecraftFont.Font, "§" + (color(f) & 0xff) + ";" + name);
     }
 
     private static void drawLabels(MapCanvas canvas, ScannerProjection proj, int span, boolean rotate) {
