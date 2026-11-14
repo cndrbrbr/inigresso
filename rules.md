@@ -231,7 +231,9 @@ Stufen: 1 = 0 AP, 2 = 2 500, 3 = 20 000, 4 = 70 000, 5 = 150 000, 6 = 300 000,
   (höherer Ø) ist mit ★ markiert.
 - **Eroberung** = ein neutrales Portal bekommt seinen ersten Resonator. Darunter stehen die
   drei Spieler mit den meisten Eroberungen im Zyklus (Top-Eroberer).
-- Abschaltbar mit `scoreboard.enabled: false` in der config.yml.
+- Jeder Spieler kann es mit `/ig scoreboard aus` für sich ausblenden (`/ig scoreboard an`
+  holt es zurück); die Einstellung bleibt gespeichert. Für alle abschaltbar mit
+  `scoreboard.enabled: false` in der config.yml.
 
 ## 9a. Scanner und Navigation
 
@@ -268,6 +270,7 @@ Stufen: 1 = 0 AP, 2 = 2 500, 3 = 20 000, 4 = 70 000, 5 = 150 000, 6 = 300 000,
 | `/ig karte [radius]` | Die zehn nächsten Portale; Klick setzt das Ziel |
 | `/ig ziel <Portal\|#id\|aus>` | Navigation zu einem Portal starten/beenden |
 | `/ig scanner [zoom <Blöcke>\|norden\|drehen]` | Scanner holen bzw. einstellen |
+| `/ig scoreboard [an\|aus]` | Scoreboard rechts für sich ein-/ausblenden |
 | `/ig stand` | Aktueller Einfluss beider Fraktionen, Zyklusstand |
 | `/ig zyklus [alt]` | Ergebnis laufender/vergangener Zyklen |
 

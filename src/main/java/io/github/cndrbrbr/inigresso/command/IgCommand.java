@@ -32,6 +32,7 @@ public final class IgCommand implements TabExecutor {
             new Sub("karte", false, "[radius]", "Nächste Portale, anklickbar als Ziel", 8),
             new Sub("ziel", false, "<Portal|aus>", "Navigation zu einem Portal", 8),
             new Sub("scanner", false, "[zoom|norden|drehen]", "Scanner-Karte holen/einstellen", 8),
+            new Sub("scoreboard", false, "[an|aus]", "Scoreboard rechts ein-/ausblenden", 8),
             new Sub("vorschlagen", false, "<Name>", "Portal vorschlagen", 3),
             new Sub("link", false, "<Portal>", "Link vom aktuellen Portal ziehen", 6),
             new Sub("aufladen", false, "<Portal>", "Portal per Schlüssel aufladen", 5),
@@ -86,6 +87,7 @@ public final class IgCommand implements TabExecutor {
             case "karte" -> nav.map(sender, label, args);
             case "ziel" -> nav.target(sender, label, args);
             case "scanner" -> nav.scanner(sender, label, args);
+            case "scoreboard" -> scoreboard(sender, label, args);
             case "aufladen" -> recharge(sender, label, args);
             case "link" -> link(sender, label, args);
             case "stand" -> standing(sender);
@@ -217,6 +219,28 @@ public final class IgCommand implements TabExecutor {
             case "portal" -> portalCommands.adminPortal(sender, label, args);
             case "geben" -> give(sender, label, args);
             default -> sender.sendMessage(ChatColor.RED + "/" + label + " admin <fraktion|ap|portal|geben> …");
+        }
+    }
+
+    private void scoreboard(CommandSender sender, String label, String[] args) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(ChatColor.RED + "Nur für Spieler.");
+            return;
+        }
+        var teams = plugin.teams();
+        boolean hidden = teams.isQuiet(player.getUniqueId());
+        String what = args.length >= 2 ? args[1].toLowerCase(Locale.ROOT) : (hidden ? "an" : "aus");
+        switch (what) {
+            case "aus" -> {
+                teams.setQuiet(player, true);
+                sender.sendMessage(ChatColor.GRAY + "Scoreboard ausgeblendet. Wieder einblenden: /" + label + " scoreboard an");
+            }
+            case "an" -> {
+                teams.setQuiet(player, false);
+                sender.sendMessage(ChatColor.GRAY + "Scoreboard eingeblendet."
+                        + (plugin.settings().scoreboard() ? "" : " (Ist auf diesem Server gerade abgeschaltet.)"));
+            }
+            default -> sender.sendMessage(ChatColor.RED + "/" + label + " scoreboard [an|aus]");
         }
     }
 
@@ -505,6 +529,8 @@ public final class IgCommand implements TabExecutor {
             List<String> opts = new ArrayList<>(List.of("aus"));
             plugin.portals().all().forEach(p -> opts.add("#" + p.id()));
             filter(out, opts, args[1]);
+        } else if (args.length == 2 && args[0].equalsIgnoreCase("scoreboard")) {
+            filter(out, List.of("an", "aus"), args[1]);
         } else if (args.length == 2 && args[0].equalsIgnoreCase("scanner")) {
             filter(out, List.of("zoom", "norden", "drehen"), args[1]);
         } else if (args.length == 3 && args[0].equalsIgnoreCase("scanner") && args[1].equalsIgnoreCase("zoom")) {

@@ -71,6 +71,7 @@ public final class InigressoPlugin extends JavaPlugin {
     private ScoreService score;
     private ScoreRepository scoreRepo;
     private StateRepository state;
+    private FactionTeams teams;
     private io.github.cndrbrbr.inigresso.render.Navigator navigator;
     private io.github.cndrbrbr.inigresso.render.ScannerRenderer scannerRenderer;
     private io.github.cndrbrbr.inigresso.item.Scanner scanner;
@@ -146,7 +147,18 @@ public final class InigressoPlugin extends JavaPlugin {
             return;
         }
 
-        FactionTeams teams = new FactionTeams();
+        java.util.Set<java.util.UUID> quiet = new java.util.HashSet<>();
+        try {
+            for (String s : state.get("sidebar_hidden").orElse("").split(",")) {
+                if (!s.isBlank()) {
+                    quiet.add(java.util.UUID.fromString(s.trim()));
+                }
+            }
+        } catch (SQLException | IllegalArgumentException e) {
+            getLogger().log(Level.WARNING, "Ausgeblendete Scoreboards nicht lesbar.", e);
+        }
+        teams = new FactionTeams(quiet, set -> state.set("sidebar_hidden",
+                String.join(",", set.stream().map(java.util.UUID::toString).toList())));
         teams.setup();
         teams.bind(bus);
         portalRenderer = new PortalRenderer(portals, () -> settings.resonatorRadius(), () -> settings.resonatorBlocks());
@@ -210,6 +222,7 @@ public final class InigressoPlugin extends JavaPlugin {
         // Nach /reload sind Spieler schon online.
         for (Player p : getServer().getOnlinePlayers()) {
             teams.apply(profiles.join(p.getUniqueId(), p.getName()));
+            teams.applyBoard(p);
             scanner.fix(p);
         }
 
@@ -228,6 +241,9 @@ public final class InigressoPlugin extends JavaPlugin {
         }
         if (sidebar != null) {
             sidebar.remove();
+        }
+        if (teams != null) {
+            teams.restoreAll();
         }
         if (database != null) {
             database.close();
@@ -300,6 +316,10 @@ public final class InigressoPlugin extends JavaPlugin {
 
     public LinkService links() {
         return links;
+    }
+
+    public FactionTeams teams() {
+        return teams;
     }
 
     public io.github.cndrbrbr.inigresso.render.Navigator navigator() {

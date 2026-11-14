@@ -48,6 +48,7 @@ public final class PlayerConnectionListener implements Listener {
         Player player = event.getPlayer();
         PlayerProfile p = profiles.join(player.getUniqueId(), player.getName());
         teams.apply(p);
+        teams.applyBoard(player);
         if (!p.hasFaction()) {
             player.sendMessage(ChatColor.GOLD + "Willkommen bei Inigresso! " + ChatColor.YELLOW
                     + "Wähle deine Fraktion: " + ChatColor.GREEN + "/ig fraktion lumen" + ChatColor.YELLOW
