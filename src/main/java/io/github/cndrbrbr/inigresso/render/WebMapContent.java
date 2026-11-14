@@ -4,6 +4,7 @@ import io.github.cndrbrbr.inigresso.model.Faction;
 import io.github.cndrbrbr.inigresso.model.Portal;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.List;
 
 /** Bukkit- und BlueMap-freie Inhalte der Webkarte: Farben, Beschriftungen, Symbole. */
 public final class WebMapContent {
@@ -47,6 +48,51 @@ public final class WebMapContent {
                 + "<text x='11' y='15' font-family='sans-serif' font-size='11' font-weight='bold'"
                 + " text-anchor='middle' fill='#fff'>" + text + "</text></svg>";
         return "data:image/svg+xml;base64," + Base64.getEncoder().encodeToString(svg.getBytes(StandardCharsets.UTF_8));
+    }
+
+    /** Spielstand als JSON für den Kasten auf der Webkarte (inigresso-stand.js). */
+    public static String standingJson(Sidebar.Data d, long now) {
+        Faction leader = d.lumen().average() > d.waechter().average() ? Faction.LUMEN
+                : d.waechter().average() > d.lumen().average() ? Faction.WAECHTER : null;
+        StringBuilder b = new StringBuilder("{\"updated\":").append(now)
+                .append(",\"cycleEnd\":").append(now + d.remainingMs()).append(",\"factions\":[");
+        List<Sidebar.Side> sides = List.of(d.lumen(), d.waechter());
+        for (int i = 0; i < sides.size(); i++) {
+            Sidebar.Side s = sides.get(i);
+            b.append(i > 0 ? "," : "").append("{\"name\":").append(json(s.faction().displayName()))
+                    .append(",\"color\":").append(json(hex(s.faction())))
+                    .append(",\"leader\":").append(s.faction() == leader)
+                    .append(",\"average\":").append(Math.round(s.average()))
+                    .append(",\"influence\":").append(s.influence())
+                    .append(",\"area\":").append(Math.round(s.area()))
+                    .append(",\"portals\":").append(s.portals())
+                    .append(",\"captures\":").append(s.captures()).append('}');
+        }
+        b.append("],\"top\":[");
+        for (int i = 0; i < d.top().size(); i++) {
+            Sidebar.Top t = d.top().get(i);
+            b.append(i > 0 ? "," : "").append("{\"name\":").append(json(t.name()))
+                    .append(",\"count\":").append(t.count()).append('}');
+        }
+        return b.append("]}").toString();
+    }
+
+    static String json(String s) {
+        StringBuilder b = new StringBuilder("\"");
+        for (char c : s.toCharArray()) {
+            switch (c) {
+                case '"' -> b.append("\\\"");
+                case '\\' -> b.append("\\\\");
+                default -> {
+                    if (c < 0x20 || c == '<' || c == '>') {
+                        b.append(String.format("\\u%04x", (int) c));
+                    } else {
+                        b.append(c);
+                    }
+                }
+            }
+        }
+        return b.append('"').toString();
     }
 
     public static String escape(String s) {

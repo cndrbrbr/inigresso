@@ -40,6 +40,20 @@ class WebMapContentTest {
     }
 
     @Test
+    void standingJsonIsValidAndMarksLeader() {
+        var d = new io.github.cndrbrbr.inigresso.render.Sidebar.Data(3_600_000,
+                new io.github.cndrbrbr.inigresso.render.Sidebar.Side(Faction.LUMEN, 1234.4, 50, 40.6, 7, 3),
+                new io.github.cndrbrbr.inigresso.render.Sidebar.Side(Faction.WAECHTER, 0, 0, 12, 2, 1),
+                java.util.List.of(new io.github.cndrbrbr.inigresso.render.Sidebar.Top("a\"b<x>", 3)));
+        String j = WebMapContent.standingJson(d, 1000);
+        assertTrue(j.startsWith("{\"updated\":1000,\"cycleEnd\":3601000,"), j);
+        assertTrue(j.contains("{\"name\":\"Lumen\",\"color\":\"#4cdc3a\",\"leader\":true,\"average\":41,"
+                + "\"influence\":50,\"area\":1234,\"portals\":7,\"captures\":3}"), j);
+        assertTrue(j.contains("\"name\":\"Wächter\",\"color\":\"#3c6eff\",\"leader\":false"), j);
+        assertTrue(j.contains("{\"name\":\"a\\\"b\\u003cx\\u003e\",\"count\":3}"), j);
+    }
+
+    @Test
     void iconIsSvgInFactionColor() {
         String uri = WebMapContent.icon(portal("A", Faction.WAECHTER));
         assertTrue(uri.startsWith("data:image/svg+xml;base64,"));

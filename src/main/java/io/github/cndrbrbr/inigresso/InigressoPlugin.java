@@ -186,7 +186,7 @@ public final class InigressoPlugin extends JavaPlugin {
         // Webkarte: Marker auf BlueMap, nur wenn installiert (sonst fehlen die API-Klassen)
         if (getServer().getPluginManager().getPlugin("BlueMap") != null) {
             new io.github.cndrbrbr.inigresso.render.WebMapMarkers(this, portals, links,
-                    () -> settings.linkBeamHeight()).start(bus);
+                    () -> settings.linkBeamHeight(), this::standing).start(bus);
             getLogger().info("BlueMap gefunden: Portale, Links und Felder erscheinen auf der Webkarte.");
         }
         // Scanner-Karte und Navigation (/ig karte, /ig ziel, /ig scanner)
@@ -349,10 +349,15 @@ public final class InigressoPlugin extends JavaPlugin {
             sidebar.remove();
             return;
         }
+        sidebar.show(standing());
+    }
+
+    /** Aktueller Spielstand für Scoreboard und Webkarte. */
+    public io.github.cndrbrbr.inigresso.render.Sidebar.Data standing() {
         long since = score.cycleStart();
         captures.prune(since);
         var st = score.standing();
-        sidebar.show(new io.github.cndrbrbr.inigresso.render.Sidebar.Data(
+        return (new io.github.cndrbrbr.inigresso.render.Sidebar.Data(
                 score.cycleEnd() - clock.millis(),
                 side(io.github.cndrbrbr.inigresso.model.Faction.LUMEN, st.lumenAvg(), since),
                 side(io.github.cndrbrbr.inigresso.model.Faction.WAECHTER, st.waechterAvg(), since),

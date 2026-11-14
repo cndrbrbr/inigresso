@@ -20,10 +20,17 @@ import io.github.cndrbrbr.inigresso.model.Link;
 import io.github.cndrbrbr.inigresso.model.Portal;
 import io.github.cndrbrbr.inigresso.service.LinkService;
 import io.github.cndrbrbr.inigresso.service.PortalService;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.DoubleSupplier;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
@@ -38,17 +45,21 @@ import org.bukkit.plugin.Plugin;
 public final class WebMapMarkers {
 
     public static final String SET_ID = "inigresso";
+    static final String ASSET_DIR = "assets/inigresso";
     static final int FULL_SECONDS = 60;
 
     private final Plugin plugin;
     private final PortalService portals;
     private final LinkService links;
     private final DoubleSupplier height;
+    private final Supplier<Sidebar.Data> standing;
     private boolean dirty = true;
     private int sinceFull;
 
-    public WebMapMarkers(Plugin plugin, PortalService portals, LinkService links, DoubleSupplier height) {
+    public WebMapMarkers(Plugin plugin, PortalService portals, LinkService links, DoubleSupplier height,
+                         Supplier<Sidebar.Data> standing) {
         this.plugin = plugin;
+        this.standing = standing;
         this.portals = portals;
         this.links = links;
         this.height = height;
@@ -56,11 +67,62 @@ public final class WebMapMarkers {
 
     public void start(GameEventBus bus) {
         bus.subscribe(GameEvent.class, e -> dirty = true);
-        BlueMapAPI.onEnable(api -> Bukkit.getScheduler().runTask(plugin, () -> {
-            dirty = true;
-            refresh();
-        }));
+        BlueMapAPI.onEnable(api -> {
+            installStanding(api);
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                dirty = true;
+                refresh();
+                writeStanding();
+            });
+        });
         Bukkit.getScheduler().runTaskTimer(plugin, this::refresh, 100L, 100L);
+        Bukkit.getScheduler().runTaskTimer(plugin, this::writeStanding, 400L, 400L);
+    }
+
+    /** Skript und Stil für den Spielstand-Kasten in den Webroot legen und bei BlueMap anmelden. */
+    private void installStanding(BlueMapAPI api) {
+        try {
+            Path dir = api.getWebApp().getWebRoot().resolve(ASSET_DIR);
+            Files.createDirectories(dir);
+            for (String f : new String[] {"inigresso-stand.js", "inigresso-stand.css"}) {
+                try (InputStream in = plugin.getResource("webmap/" + f)) {
+                    if (in != null) {
+                        Files.copy(in, dir.resolve(f), StandardCopyOption.REPLACE_EXISTING);
+                    }
+                }
+            }
+            api.getWebApp().registerStyle(ASSET_DIR + "/inigresso-stand.css");
+            api.getWebApp().registerScript(ASSET_DIR + "/inigresso-stand.js");
+        } catch (IOException | RuntimeException ex) {
+            plugin.getLogger().log(Level.WARNING, "Webkarte: Spielstand-Anzeige nicht installiert.", ex);
+        }
+    }
+
+    /** Alle 20 s: Spielstand auf dem Server-Thread berechnen, Datei asynchron schreiben. */
+    private void writeStanding() {
+        Optional<BlueMapAPI> api = BlueMapAPI.getInstance();
+        if (api.isEmpty()) {
+            return;
+        }
+        String json;
+        try {
+            json = WebMapContent.standingJson(standing.get(), System.currentTimeMillis());
+        } catch (RuntimeException ex) {
+            plugin.getLogger().log(Level.WARNING, "Webkarte: Spielstand nicht berechenbar.", ex);
+            return;
+        }
+        Path dir = api.get().getWebApp().getWebRoot().resolve(ASSET_DIR);
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            try {
+                Files.createDirectories(dir);
+                Path tmp = dir.resolve("stand.json.tmp");
+                Files.writeString(tmp, json, StandardCharsets.UTF_8);
+                Files.move(tmp, dir.resolve("stand.json"), StandardCopyOption.REPLACE_EXISTING,
+                        StandardCopyOption.ATOMIC_MOVE);
+            } catch (IOException ex) {
+                plugin.getLogger().log(Level.WARNING, "Webkarte: Spielstand nicht geschrieben.", ex);
+            }
+        });
     }
 
     /** Alle 5 s: neu bauen, wenn sich etwas geändert hat oder die volle Minute um ist. */
