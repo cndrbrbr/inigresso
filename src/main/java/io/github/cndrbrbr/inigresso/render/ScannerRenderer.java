@@ -8,6 +8,7 @@ import io.github.cndrbrbr.inigresso.model.Portal;
 import io.github.cndrbrbr.inigresso.service.LinkService;
 import io.github.cndrbrbr.inigresso.service.PortalService;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -136,6 +137,7 @@ public final class ScannerRenderer extends MapRenderer {
             }
         }
         drawLabels(canvas, proj, span, s.rotate);
+        drawNumbers(canvas, proj, world, span, target.orElse(null));
         drawFaction(canvas, factionOf.apply(player.getUniqueId()));
         canvas.setCursors(cursors(proj, s.rotate, heading, target.filter(t -> t.core().world().equals(world))));
     }
@@ -171,7 +173,7 @@ public final class ScannerRenderer extends MapRenderer {
             double[] pb = screen(proj, b.get());
             img.line(pa[0], pa[1], pb[0], pb[1], color(l.faction()));
         }
-        double dot = span <= 256 ? 2 : span <= 512 ? 1.5 : 1;
+        double dot = dotSize(span);
         for (Portal p : allPortals) {
             if (!p.core().world().equals(world)) {
                 continue;
@@ -220,6 +222,19 @@ public final class ScannerRenderer extends MapRenderer {
             double[] b = proj.toScreen(maxX, gz);
             img.line(a[0], a[1], b[0], b[1], GRID);
         }
+    }
+
+    /** Portalnummern neben den Punkten, ohne Überlappung (siehe ScannerLabels). */
+    private void drawNumbers(MapCanvas canvas, ScannerProjection proj, String world, int span, Portal target) {
+        List<int[]> reserved = List.of(new int[] {0, 0, 32, 10}, new int[] {80, 0, 127, 10});
+        for (ScannerLabels.Label l : ScannerLabels.place(proj, world, portals.all(), target, dotSize(span), reserved)) {
+            byte c = l.portal().equals(target) ? TARGET : color(l.portal().owner());
+            canvas.drawText(l.x(), l.y(), MinecraftFont.Font, "§" + (c & 0xff) + ";" + l.text());
+        }
+    }
+
+    static double dotSize(int span) {
+        return span <= 256 ? 2 : span <= 512 ? 1.5 : 1;
     }
 
     /** Eigene Fraktion oben rechts, damit jeder sieht, wozu er gehört. */

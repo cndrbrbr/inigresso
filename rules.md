@@ -241,7 +241,8 @@ Stufen: 1 = 0 AP, 2 = 2 500, 3 = 20 000, 4 = 70 000, 5 = 150 000, 6 = 300 000,
   selbst zeichnet. Verloren? `/ig scanner` gibt einen neuen. Beim Tod bleibt er erhalten.
 - Der Scanner zeigt auf dunklem Hintergrund mit Gitter **alle** Portale (Punkte in
   Fraktionsfarbe, neutral grau), alle Links (Linien) und Felder (gerasterte Flächen).
-  Der Spieler ist der Pfeil in der Mitte.
+  Neben den Punkten steht die Portalnummer (`#id`, wie bei `/ig ziel #id`), bei 1024 Blöcken
+  Kartenbreite nur noch die des Ziels. Der Spieler ist der Pfeil in der Mitte.
 - Standard: Blickrichtung oben, ein rotes **N** am Rand zeigt Norden. `/ig scanner norden`
   stellt auf „Norden oben“ um, `/ig scanner drehen` zurück.
 - Zoom (Kartenbreite 128, 256, 512 oder 1024 Blöcke): **Schleichen + Rechtsklick** mit dem
