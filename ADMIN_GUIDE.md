@@ -151,3 +151,14 @@ Server.
 | Scoreboard fehlt bei einem Spieler | `/ig scoreboard an`; ein anderes Plugin kann ein eigenes Scoreboard setzen |
 | Zyklus/Verfall „verpasst“ während der Server aus war | wird beim Start automatisch nachgeholt (siehe Log) |
 | Automatische Portale erscheinen nicht | nur in `worlds`, nur auf natürlichem Boden, nur in Chunks, die noch nie geprüft wurden (Tabelle `auto_cell`) |
+
+## Webkarte (BlueMap)
+
+Ist [BlueMap](https://bluemap.bluecolored.de/) auf demselben Server installiert, legt Inigresso
+automatisch den Markersatz „Inigresso“ an: Portale (Symbol in Fraktionsfarbe mit Stufe, Klick zeigt
+Besitzer, Resonatoren, Koordinaten), Links als Linien und Felder als Flächen in Höhe der Link-Strahlen.
+Aktualisiert wird wenige Sekunden nach jeder Spieländerung, sonst einmal pro Minute. Ohne BlueMap
+passiert nichts (optionale Abhängigkeit). Live z. B. auf https://karte-inigresso.meckminecraft.de/.
+
+Hinweis für Container mit nicht beschreibbarem Arbeitsverzeichnis: in `plugins/BlueMap/*.conf`
+die relativen Pfade `bluemap/...` auf einen beschreibbaren Ordner umstellen (z. B. `/server/data/bluemap`).

@@ -183,6 +183,12 @@ public final class InigressoPlugin extends JavaPlugin {
         getServer().getScheduler().runTaskTimer(this, network::drawLinks, 10L, 10L);
         getServer().getScheduler().runTaskTimer(this, network::drawFields, 15L, 10L);
         getServer().getScheduler().runTaskTimer(this, network::updateBars, 20L, 20L);
+        // Webkarte: Marker auf BlueMap, nur wenn installiert (sonst fehlen die API-Klassen)
+        if (getServer().getPluginManager().getPlugin("BlueMap") != null) {
+            new io.github.cndrbrbr.inigresso.render.WebMapMarkers(this, portals, links,
+                    () -> settings.linkBeamHeight()).start(bus);
+            getLogger().info("BlueMap gefunden: Portale, Links und Felder erscheinen auf der Webkarte.");
+        }
         // Scanner-Karte und Navigation (/ig karte, /ig ziel, /ig scanner)
         navigator = new io.github.cndrbrbr.inigresso.render.Navigator(portals);
         scannerRenderer = new io.github.cndrbrbr.inigresso.render.ScannerRenderer(portals, links, navigator,

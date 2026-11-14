@@ -3,6 +3,7 @@ version: ${project.version}
 main: io.github.cndrbrbr.inigresso.InigressoPlugin
 api-version: '26.3'
 author: cndrbrbr
+softdepend: [BlueMap]
 description: Territorialspiel mit Portalen, Links und Feldern zwischen zwei Fraktionen.
 
 commands:
