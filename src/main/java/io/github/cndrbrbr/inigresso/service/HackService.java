@@ -23,13 +23,17 @@ public final class HackService {
 
     public static final long WINDOW_MS = 4 * 60 * 60 * 1000L;
 
-    public record Rules(int cooldownMinutes, int maxPerWindow, double keyChance) {
+    public record Rules(int cooldownMinutes, int maxPerWindow, double keyChance, int xpPerLevel, double xpEnemyFactor) {
+        /** Ältere Aufrufer ohne XP-Belohnung. */
+        public Rules(int cooldownMinutes, int maxPerWindow, double keyChance) {
+            this(cooldownMinutes, maxPerWindow, keyChance, 0, 1.0);
+        }
     }
 
     public enum Problem { NO_FACTION, COOLDOWN, BURNED_OUT }
 
-    /** Entweder loot (ok) oder problem mit Wartezeit in ms. */
-    public record Result(List<GameItem> loot, Problem problem, long waitMs) {
+    /** Entweder loot + xp (ok) oder problem mit Wartezeit in ms. */
+    public record Result(List<GameItem> loot, Problem problem, long waitMs, int xp) {
         public boolean ok() {
             return problem == null;
         }
@@ -59,7 +63,7 @@ public final class HackService {
 
     public Result hack(PlayerProfile by, Portal p) {
         if (!by.hasFaction()) {
-            return new Result(List.of(), Problem.NO_FACTION, 0);
+            return new Result(List.of(), Problem.NO_FACTION, 0, 0);
         }
         Rules r = rules.get();
         long now = clock.millis();
@@ -69,10 +73,10 @@ public final class HackService {
         }
         long cooldown = r.cooldownMinutes() * 60_000L;
         if (!times.isEmpty() && now - times.peekLast() < cooldown) {
-            return new Result(List.of(), Problem.COOLDOWN, cooldown - (now - times.peekLast()));
+            return new Result(List.of(), Problem.COOLDOWN, cooldown - (now - times.peekLast()), 0);
         }
         if (times.size() >= r.maxPerWindow()) {
-            return new Result(List.of(), Problem.BURNED_OUT, times.peekFirst() + WINDOW_MS - now);
+            return new Result(List.of(), Problem.BURNED_OUT, times.peekFirst() + WINDOW_MS - now, 0);
         }
         times.addLast(now);
         bus.publish(new GameEvent.Hacked(by.uuid(), p.id(), now));
@@ -89,6 +93,12 @@ public final class HackService {
             loot.add(GameItem.key(p.id(), by.faction()));
         }
         progress.award(by, enemy ? PlayerProgressService.Action.HACK_ENEMY : PlayerProgressService.Action.HACK_OWN);
-        return new Result(loot, null, 0);
+        return new Result(loot, null, 0, xp(r, p.level(), enemy));
+    }
+
+    /** XP-Belohnung (rules.md §4): xpPerLevel × Portalstufe (neutral = 1), am gegnerischen Portal × Faktor. */
+    static int xp(Rules r, int portalLevel, boolean enemy) {
+        int base = Math.max(0, r.xpPerLevel()) * Math.max(1, portalLevel);
+        return (int) Math.round(enemy ? base * Math.max(1.0, r.xpEnemyFactor()) : base);
     }
 }

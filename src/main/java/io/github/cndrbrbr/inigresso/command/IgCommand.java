@@ -16,7 +16,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 
 /**
- * /ig mit allen Unterbefehlen aus rules.md §10. Noch nicht umgesetzte Befehle melden,
+ * /ig mit allen Unterbefehlen aus rules.md §12. Noch nicht umgesetzte Befehle melden,
  * in welcher Phase von implement.md sie kommen.
  */
 public final class IgCommand implements TabExecutor {
@@ -27,7 +27,7 @@ public final class IgCommand implements TabExecutor {
     private static final List<Sub> SUBS = List.of(
             new Sub("hilfe", false, "", "Diese Hilfe", 0),
             new Sub("fraktion", false, "[lumen|waechter]", "Fraktion wählen (einmalig)", 2),
-            new Sub("info", false, "", "Eigene Stufe, AP und Fraktion", 2),
+            new Sub("info", false, "", "Eigene Stufe, AP, XP und Fraktion", 2),
             new Sub("portal", false, "", "Infos zum nächsten Portal", 3),
             new Sub("karte", false, "[radius]", "Nächste Portale, anklickbar als Ziel", 8),
             new Sub("ziel", false, "<Portal|aus>", "Navigation zu einem Portal", 8),
@@ -168,6 +168,13 @@ public final class IgCommand implements TabExecutor {
         if (online != null) {
             sender.sendMessage(ChatColor.GRAY + "Spiel-Inventar: " + ChatColor.WHITE + plugin.gameInventory().count(online)
                     + " / " + plugin.settings().playerMaxItems());
+            int xp = io.github.cndrbrbr.inigresso.item.Xp.total(online);
+            sender.sendMessage(ChatColor.GRAY + "XP zum Aufladen: " + ChatColor.GREEN + String.format("%,d", xp)
+                    + ChatColor.GRAY + " Punkte (Minecraft-Level " + online.getLevel() + ") = "
+                    + ChatColor.WHITE + String.format("%,d", xp * io.github.cndrbrbr.inigresso.service.EnergyService.ENERGY_PER_XP)
+                    + ChatColor.GRAY + " Energie");
+            sender.sendMessage(ChatColor.DARK_GRAY + "XP gibt es beim Hacken (" + plugin.settings().hackXpPerLevel()
+                    + " × Portalstufe, beim Gegner mehr), dazu wie üblich durch Erze, Schmelzen, Züchten, Angeln, Handel.");
         }
     }
 

@@ -135,6 +135,11 @@ außerhalb des Spiels nachgemacht werden.
 - Abklingzeit pro Spieler und Portal: 5 Minuten. Höchstens 4 Hacks pro Portal und
   Spieler in 4 Stunden.
 - Jeder Hack gibt Aktionspunkte (eigenes/neutrales Portal 100, gegnerisches 150).
+- Jeder Hack gibt außerdem **XP** (Minecraft-Erfahrungspunkte, siehe §5.1):
+  10 × Portalstufe, neutrale Portale zählen als Stufe 1, am gegnerischen Portal das
+  1,5-Fache (`hack.xp-per-level`, `hack.xp-enemy-factor`). Beispiele: neutrales Portal 10 XP,
+  eigenes L4-Portal 40 XP, gegnerisches L6-Portal 90 XP. Die Chatmeldung nach dem Hack nennt
+  Beute und XP. Ein Hack, der wegen Abklingzeit oder Limit nicht klappt, gibt nichts.
 
 ## 5. Energie und Angriff
 
@@ -156,6 +161,30 @@ außerhalb des Spiels nachgemacht werden.
   aufladen. Kosten: XP-Punkte des Spielers (1 XP = 10 Energie), höchstens 1000 Energie
   pro Vorgang, die schwächsten Resonatoren zuerst.
 - Die Anzeige über dem Kern zeigt die Energie des Portals in Prozent.
+- Zum Vergleich: Ein voll ausgebautes Portal L8 hat 48 000 Energie und verliert täglich
+  7 200, ein Portal mit acht L1-Resonatoren hat 8 000 und verliert 1 200. Fürs Erhalten
+  braucht man also pro Portal und Tag rund 120 XP (L1) bis 720 XP (L8).
+
+### 5.1 XP (Erfahrungspunkte)
+
+- XP sind die **normalen Minecraft-Erfahrungspunkte**, also die grüne Leiste über der
+  Hotbar. Inigresso führt kein eigenes XP-Konto.
+- Wofür: nur zum **Aufladen** eigener Portale (1 XP = 10 Energie).
+- Woher:
+  - **Hacken** (§4): die wichtigste Quelle, 10–120 XP pro Hack je nach Portal.
+  - wie in Minecraft üblich: Erze abbauen (Kohle, Redstone, Lapis, Diamant, Smaragd,
+    Netherquarz), im Ofen schmelzen, Tiere züchten, angeln, mit Dorfbewohnern handeln,
+    Monster besiegen (nur wenn der Server nicht auf „friedlich“ steht).
+- Wo man sie sieht: Die Zahl über der grünen Leiste ist das **Minecraft-Level**, nicht die
+  Punktzahl. Die genaue Punktzahl und wie viel Energie sie ergibt, zeigt `/ig info`.
+  Beim Aufladen nennt der Chat die verbrauchten XP-Punkte.
+- **Nicht verwechseln:** Die **Spielerstufe** von Inigresso (L1–L8, aus Aktionspunkten,
+  §9) steht in der Tabliste und am Namensschild. Sie hat mit dem Minecraft-Level nichts zu
+  tun und sinkt beim Aufladen nicht.
+- XP, die Inigresso beim Hacken gibt, gehen direkt aufs Konto und reparieren keine Werkzeuge
+  mit „Reparatur“ (Mending).
+- Beim Tod gelten die normalen Minecraft-Regeln: Die XP gehen (bis auf einen kleinen Teil
+  als Kugeln) verloren, es sei denn, der Server hat `keepInventory` an.
 
 ## 6. Links
 
@@ -185,7 +214,7 @@ außerhalb des Spiels nachgemacht werden.
   des Links das größte mögliche Feld erzeugt (höchstens 2 Felder pro Link).
 - Wer unter einem Feld steht, sieht eine Bossbar in Fraktionsfarbe mit Einfluss und Zahl
   der Schichten. Neue Felder werden allen Spielern im Chat gemeldet. Auf dem Scanner
-  (§9a) erscheinen Felder als gerasterte Fläche in Fraktionsfarbe.
+  (§11) erscheinen Felder als gerasterte Fläche in Fraktionsfarbe.
 - Ein Feld zerfällt, sobald einer seiner drei Links verschwindet.
 
 ## 8. Wertung
@@ -222,7 +251,9 @@ außerhalb des Spiels nachgemacht werden.
 Stufen: 1 = 0 AP, 2 = 2 500, 3 = 20 000, 4 = 70 000, 5 = 150 000, 6 = 300 000,
 7 = 600 000, 8 = 1 200 000.
 
-## 8a. Scoreboard
+## 10. Anzeigen
+
+### 10.1 Scoreboard
 
 - Rechts am Bildschirm sehen alle Spieler den Stand des laufenden Zyklus: Restzeit, je
   Fraktion die **Fläche** aller Felder (Blöcke², überlappende Schichten zählen mehrfach),
@@ -235,7 +266,31 @@ Stufen: 1 = 0 AP, 2 = 2 500, 3 = 20 000, 4 = 70 000, 5 = 150 000, 6 = 300 000,
   holt es zurück); die Einstellung bleibt gespeichert. Für alle abschaltbar mit
   `scoreboard.enabled: false` in der config.yml.
 
-## 9a. Scanner und Navigation
+### 10.2 Name, Tabliste und Chat
+
+- Jeder Spieler mit Fraktion hat ein eigenes Team: Am **Namensschild** über dem Kopf steht
+  `[Lumen] Name · L3` bzw. `[Wächter] Name · L3` in Fraktionsfarbe, in der **Tabliste**
+  `Name L3`. Die Zahl ist die Inigresso-Spielerstufe (§9) und wird sofort aktualisiert.
+- Beim Einloggen nennt der Chat die eigene Fraktion. Nachrichten, die während der
+  Abwesenheit angefallen sind (z. B. Entscheidungen über Vorschläge), kommen beim Login.
+- Portalschlüssel heißen `Schlüssel #<Nummer>: <Portalname>`; ältere Schlüssel werden beim
+  Login neu beschriftet.
+
+### 10.3 Bossbar und Meldungen
+
+- Unter einem Feld zeigt eine Bossbar in Fraktionsfarbe Einfluss und Zahl der Schichten (§7).
+- Neue Felder und Zyklusergebnisse werden allen im Chat gemeldet.
+
+### 10.4 Webkarte
+
+- Ist auf dem Server BlueMap installiert, zeigt die Webkarte alle Portale (Symbol in
+  Fraktionsfarbe mit Stufe; Klick zeigt Besitzer, Resonatoren, Koordinaten), Links als
+  Linien und Felder als Flächen. Aktualisiert wird wenige Sekunden nach jeder Änderung.
+- Ein Kasten auf der Webkarte zeigt den Spielstand wie das Scoreboard (Einfluss, Fläche,
+  Portale, Top-Eroberer), alle 20 Sekunden neu.
+- Auf meckminecraft: <https://karte-inigresso.meckminecraft.de/>.
+
+## 11. Scanner und Navigation
 
 - Jeder Spieler bekommt bei der Fraktionswahl einen **Scanner**: eine Karte, die das Plugin
   selbst zeichnet. Verloren? `/ig scanner` gibt einen neuen. Beim Tod bleibt er erhalten.
@@ -255,18 +310,19 @@ Stufen: 1 = 0 AP, 2 = 2 500, 3 = 20 000, 4 = 70 000, 5 = 150 000, 6 = 300 000,
   es außerhalb liegt). Ab 5 Blöcken gilt es als erreicht. `/ig ziel aus` beendet die
   Navigation. Ziel und Scanner-Einstellungen gelten nur bis zum Ausloggen.
 
-## 10. Befehle
+## 12. Befehle
 
 ### Spieler (`inigresso.use`, Standard: alle)
 
 | Befehl | Wirkung |
 |---|---|
 | `/ig fraktion [lumen\|waechter]` | Fraktion wählen (einmalig); ohne Angabe: Größe beider Fraktionen |
-| `/ig info` | Eigene Stufe, AP, Fraktion, Inventar-Füllstand |
+| `/ig info` | Eigene Fraktion, Spielerstufe, AP, Inventar-Füllstand, XP-Punkte und die Energie, die sie ergeben |
 | `/ig portal` | Infos zum nächsten Portal im Umkreis von 16 Blöcken |
+| `/ig hilfe` | Liste aller Befehle |
 | `/ig vorschlagen <Name>` | Portal vorschlagen |
 | `/ig link <Schlüssel-Portal>` | Link vom aktuellen Portal ziehen |
-| `/ig aufladen <Portal>` | Portal über Schlüssel aufladen |
+| `/ig aufladen <Portal>` | Eigenes Portal über einen Schlüssel mit XP aufladen (am Kern: Schleichen + Rechtsklick) |
 | `/ig inventar` | Übersicht der eigenen Spielgegenstände |
 | `/ig karte [radius]` | Die zehn nächsten Portale; Klick setzt das Ziel |
 | `/ig ziel <Portal\|#id\|aus>` | Navigation zu einem Portal starten/beenden |
@@ -290,7 +346,7 @@ Stufen: 1 = 0 AP, 2 = 2 500, 3 = 20 000, 4 = 70 000, 5 = 150 000, 6 = 300 000,
 | `/ig info <spieler>` | Profil eines anderen Spielers ansehen |
 | `/ig reload` | Konfiguration neu laden |
 
-## 11. Technik
+## 13. Technik
 
 - Spigot 26.3, Java 25, Maven.
 - Speicherung in SQLite (`plugins/Inigresso/inigresso.db`) über den in Spigot

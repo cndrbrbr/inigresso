@@ -44,4 +44,11 @@ public final class Xp {
         p.setExp((float) (total - pointsForLevel(level)) / pointsToNext(level));
         p.setTotalExperience(total);
     }
+
+    /** Punkte gutschreiben (ohne Reparatur durch Mending, damit nichts verloren geht). */
+    public static void add(Player p, int amount) {
+        if (amount > 0) {
+            set(p, total(p) + amount);
+        }
+    }
 }

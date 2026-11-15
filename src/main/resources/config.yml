@@ -26,6 +26,10 @@ hack:
   cooldown-minutes: 5
   max-per-4h: 4
   key-chance: 0.50
+  # XP-Belohnung je Hack: xp-per-level × Portalstufe (neutrale Portale zählen als 1),
+  # am gegnerischen Portal × xp-enemy-factor. XP braucht man zum Aufladen (1 XP = 10 Energie).
+  xp-per-level: 10
+  xp-enemy-factor: 1.5
 
 player:
   max-items: 500

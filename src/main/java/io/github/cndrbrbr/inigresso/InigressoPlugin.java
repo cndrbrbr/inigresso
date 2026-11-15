@@ -105,7 +105,7 @@ public final class InigressoPlugin extends JavaPlugin {
             hackRepo.bind(bus);
             hacks = new HackService(bus, clock, RandomGenerator.getDefault(),
                     () -> new HackService.Rules(settings.hackCooldownMinutes(), settings.hackMaxPer4h(),
-                            settings.hackKeyChance()),
+                            settings.hackKeyChance(), settings.hackXpPerLevel(), settings.hackXpEnemyFactor()),
                     progress, hackRepo.loadSince(clock.millis() - HackService.WINDOW_MS));
             combat = new CombatService(portals, progress, bus, () -> settings.resonatorRadius());
             state = new StateRepository(database);
@@ -376,7 +376,7 @@ public final class InigressoPlugin extends JavaPlugin {
                 captures.count(f, since));
     }
 
-    /** Admin-Eingriffe protokollieren (rules.md §11). */
+    /** Admin-Eingriffe protokollieren (rules.md §13). */
     public void audit(String actor, String action, String detail) {
         audit.log(actor, action, detail);
         getLogger().info("[Audit] " + actor + " " + action + ": " + detail);

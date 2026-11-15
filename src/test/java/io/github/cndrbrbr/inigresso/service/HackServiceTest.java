@@ -136,4 +136,26 @@ class HackServiceTest {
         }
         assertEquals(4 * 150, a.ap());
     }
+
+    @Test
+    void xpBelohnung() {
+        HackService.Rules r = new HackService.Rules(5, 4, 0.5, 10, 1.5);
+        assertEquals(10, HackService.xp(r, 0, false), "neutral zählt als Stufe 1");
+        assertEquals(60, HackService.xp(r, 6, false));
+        assertEquals(90, HackService.xp(r, 6, true));
+        assertEquals(0, HackService.xp(new HackService.Rules(5, 4, 0.5), 8, true), "ohne Einstellung keine XP");
+
+        HackService s = new HackService(bus, clock, new Random(42), () -> r, progress, List.of());
+        PlayerProfile a = player(Faction.LUMEN);
+        assertEquals(10, s.hack(a, portal).xp());
+        assertEquals(0, s.hack(a, portal).xp(), "Abklingzeit: keine XP");
+
+        PlayerProfile owner = player(Faction.WAECHTER);
+        owner.setAp(1_200_000);
+        for (int i = 0; i < 8; i++) {
+            portals.deploy(owner, portal, 8 - i % 3);
+        }
+        clock.advance(Duration.ofMinutes(5));
+        assertEquals(Math.round(10 * portal.level() * 1.5), s.hack(a, portal).xp());
+    }
 }

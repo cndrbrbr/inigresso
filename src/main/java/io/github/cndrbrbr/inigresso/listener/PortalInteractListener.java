@@ -225,6 +225,10 @@ public final class PortalInteractListener implements Listener {
             sb.append(g.type() == GameItem.Type.KEY ? ChatColor.AQUA + "Schlüssel"
                     : ItemFactory.levelColor(g.level()) + g.type().displayName() + " L" + g.level());
         }
+        if (r.xp() > 0) {
+            Xp.add(player, r.xp());
+            sb.append(ChatColor.GRAY).append(" + ").append(ChatColor.GREEN).append(r.xp()).append(" XP");
+        }
         player.sendMessage(sb.toString());
         if (got < r.loot().size()) {
             player.sendMessage(ChatColor.YELLOW + "Dein Inventar ist voll (" + inventory.max()

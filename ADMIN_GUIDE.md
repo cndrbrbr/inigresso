@@ -53,7 +53,7 @@ Alle brauchen `inigresso.admin` (Standard: op).
 | `/ig admin fraktion <Spieler> <lumen\|waechter>` | Fraktion wechseln (Spielgegenstände der alten Fraktion verfallen) |
 | `/ig admin geben <Spieler> <resonator\|burst\|schluessel> <Stufe\|#Portal> [Anzahl]` | Gegenstände geben (Tests, Ersatz) |
 | `/ig admin ap <Spieler> <+/-Menge>` | AP korrigieren |
-| `/ig info <Spieler>` | Profil eines Spielers |
+| `/ig info <Spieler>` | Profil eines Spielers (Fraktion, Stufe, AP; ist er online, auch Spielgegenstände und XP) |
 | `/ig reload` | `config.yml` neu laden |
 
 Alle Eingriffe mit Spielfolgen landen im **Audit-Log** (Tabelle `audit` in der Datenbank und
@@ -85,6 +85,8 @@ Warnung im Log).
 | `hack.cooldown-minutes` | 5 | Wartezeit je Spieler und Portal |
 | `hack.max-per-4h` | 4 | Hacks je Spieler und Portal in 4 Stunden |
 | `hack.key-chance` | 0.50 | Chance auf einen Portalschlüssel |
+| `hack.xp-per-level` | 10 | XP je Hack = Wert × Portalstufe (neutral = 1); 0 schaltet die XP-Belohnung ab |
+| `hack.xp-enemy-factor` | 1.5 | Faktor für XP am gegnerischen Portal (mindestens 1) |
 | `player.max-items` | 500 | Höchstzahl Spielgegenstände je Spieler |
 | `cycle.start-day` | `MONDAY` | Beginn des Wertungszyklus |
 | `cycle.length-hours` | 168 | Zykluslänge (zum Testen z. B. 1) |
@@ -93,6 +95,13 @@ Warnung im Log).
 | `auto-portals.spacing` | 100 | Rasterweite (mind. 16) |
 | `auto-portals.jitter` | 25 | Zufälliger Versatz in der Zelle |
 | `scoreboard.enabled` | true | Scoreboard rechts für alle (Spieler können es mit `/ig scoreboard aus` für sich ausblenden) |
+
+**XP und Aufladen:** Portale verlieren täglich `decay.percent-per-day` ihrer Energie und werden
+mit Minecraft-XP aufgeladen (1 XP = 10 Energie). Ein volles L8-Portal braucht dafür rund 720 XP
+am Tag, eins mit L1-Resonatoren rund 120. Auf einem Server mit `difficulty=peaceful` gibt es keine
+Monster-XP; dann kommen XP fast nur aus dem Hacken (`hack.xp-per-level`) sowie aus Erzen, Schmelzen,
+Züchten, Angeln und Handel. Werden Portale zu schnell schwach, `hack.xp-per-level` erhöhen oder
+`decay.percent-per-day` senken. Spieler sehen ihre XP-Punkte mit `/ig info`.
 
 **Testlauf mit wenigen Leuten:** `proposal.min-level: 1`, `cycle.length-hours: 24`,
 `cycle.measure-minutes: 10`, `auto-portals.enabled: true`. Mit `/ig admin geben` und
@@ -109,6 +118,10 @@ Warnung im Log).
   ihn bei der Fraktionswahl, Ersatz mit `/ig scanner`. Alle Scanner teilen eine Karten-ID
   (in der Datenbank gespeichert).
 - **Scoreboard** rechts, **Navigation** mit `/ig karte` und `/ig ziel`.
+- **Name:** `[Lumen] Name · L3` am Namensschild, `Name L3` in der Tabliste (L = Inigresso-Spielerstufe,
+  nicht das Minecraft-Level). Dafür legt Inigresso je Spieler ein Team `igp_…` auf dem Haupt-Scoreboard an.
+- **XP:** Hacken gibt Minecraft-XP, die Chatmeldung nennt sie; `/ig info` zeigt XP-Punkte und die
+  Energie, die sie beim Aufladen ergeben.
 
 ## 6. Sicherung und Zurücksetzen
 
