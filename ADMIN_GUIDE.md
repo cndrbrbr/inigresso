@@ -1,7 +1,7 @@
 # Inigresso – Anleitung für Admins
 
 Diese Anleitung richtet sich an alle, die Inigresso auf einem Server betreiben. Die Spielregeln
-stehen in [rules.md](rules.md), die bebilderte Spieleranleitung unter
+stehen in [rules.md](rules.md), die Spieleranleitung in [SPIELANLEITUNG.md](SPIELANLEITUNG.md), die bebilderte Spieleranleitung unter
 <https://cndrbrbr.github.io/inigresso/>.
 
 ## 1. Installation

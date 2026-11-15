@@ -9,11 +9,12 @@ Portale, verbinden sie mit Links und spannen Felder auf.
 *Portal „Westhügel“ der Lumen mit acht leuchtenden Resonatoren; unten der Scanner mit zwei
 Lumen-Feldern. Echte Screenshots von meck mc2.*
 
-- [rules.md](rules.md) – Spielregeln
+- [SPIELANLEITUNG.md](SPIELANLEITUNG.md) – Spieleranleitung
+- [rules.md](rules.md) – Spielregeln (vollständig, mit allen Zahlen)
 - [architecture.md](architecture.md) – Aufbau des Plugins
 - [implement.md](implement.md) – Umsetzungsplan und Stand
 - [ADMIN_GUIDE.md](ADMIN_GUIDE.md) – Installation, Konfiguration, Admin-Befehle, Sicherung
-- Spieleranleitung: <https://cndrbrbr.github.io/inigresso/>
+- Bebilderte Spieleranleitung: <https://cndrbrbr.github.io/inigresso/>
 
 Bauen:
 
