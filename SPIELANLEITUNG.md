@@ -1,6 +1,6 @@
 # Inigresso – Spieleranleitung
 
-Inigresso ist ein Territorialspiel in Minecraft. Zwei Fraktionen erobern Portale, verbinden
+Inigresso ist ein Territorialspiel in Minecraft. Drei Fraktionen erobern Portale, verbinden
 sie mit Links und spannen damit Felder auf. Wer im Wochenschnitt den meisten Einfluss hat,
 gewinnt den Zyklus. Das Spiel läuft dauerhaft weiter; jede Woche beginnt eine neue Wertung.
 
@@ -43,6 +43,7 @@ den [Spielregeln](rules.md). Eine bebilderte Fassung gibt es unter
 |---|---|---|
 | **Lumen** | grün | `/ig fraktion lumen` |
 | **Wächter** | blau | `/ig fraktion waechter` |
+| **Clip** | rot | `/ig fraktion clip` |
 
 - Die Wahl ist **dauerhaft**. Wechseln kann nur ein Admin, und dabei gehen deine
   Spielgegenstände verloren.
@@ -50,8 +51,8 @@ den [Spielregeln](rules.md). Eine bebilderte Fassung gibt es unter
   größer, bekommst du einen Hinweis – entscheiden darfst du trotzdem frei.
 - Nach der Wahl bekommst du einen **Scanner** (eine Karte mit allen Portalen).
 
-**Woran du deine Fraktion erkennst:** Dein Name steht in Fraktionsfarbe mit `[Lumen]` oder
-`[Wächter]` davor über deinem Kopf, dazu deine Spielerstufe (z. B. `[Lumen] Anna · L2`).
+**Woran du deine Fraktion erkennst:** Dein Name steht in Fraktionsfarbe mit `[Lumen]`, `[Wächter]` oder
+`[Clip]` davor über deinem Kopf, dazu deine Spielerstufe (z. B. `[Lumen] Anna · L2`).
 Beim Einloggen steht die Fraktion im Chat, außerdem oben rechts auf dem Scanner und bei
 `/ig info`.
 
@@ -272,7 +273,7 @@ allen im Chat gemeldet.
 
 **Wertung:**
 
-- Jede volle Stunde wird der Gesamteinfluss beider Fraktionen gemessen.
+- Jede volle Stunde wird der Gesamteinfluss aller drei Fraktionen gemessen.
 - Ein **Zyklus** dauert eine Woche (Montag bis Sonntag). Gewinner ist die Fraktion mit dem
   **höchsten Durchschnitt** aller Messungen. Wer also lange Felder hält, gewinnt – nicht wer
   nur kurz vor Schluss eins aufspannt.
@@ -342,7 +343,7 @@ Kern stehen soll – am besten an ein schönes Bauwerk –, und gib ein:
 | Befehl | Wofür |
 |---|---|
 | `/ig hilfe` | Alle Befehle |
-| `/ig fraktion lumen` / `waechter` | Fraktion wählen (einmalig) |
+| `/ig fraktion lumen` / `waechter` / `clip` | Fraktion wählen (einmalig) |
 | `/ig info` | Fraktion, Stufe, AP, Spielgegenstände, **XP** |
 | `/ig portal` | Infos zum nächsten Portal |
 | `/ig inventar` | Deine Spielgegenstände |

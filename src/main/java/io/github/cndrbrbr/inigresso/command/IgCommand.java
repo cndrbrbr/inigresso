@@ -26,7 +26,7 @@ public final class IgCommand implements TabExecutor {
 
     private static final List<Sub> SUBS = List.of(
             new Sub("hilfe", false, "", "Diese Hilfe", 0),
-            new Sub("fraktion", false, "[lumen|waechter]", "Fraktion wählen (einmalig)", 2),
+            new Sub("fraktion", false, "[lumen|waechter|clip]", "Fraktion wählen (einmalig)", 2),
             new Sub("info", false, "", "Eigene Stufe, AP, XP und Fraktion", 2),
             new Sub("portal", false, "", "Infos zum nächsten Portal", 3),
             new Sub("karte", false, "[radius]", "Nächste Portale, anklickbar als Ziel", 8),
@@ -117,7 +117,7 @@ public final class IgCommand implements TabExecutor {
             if (p.hasFaction()) {
                 sender.sendMessage(ChatColor.GRAY + "Deine Fraktion: " + p.faction().colored());
             } else {
-                sender.sendMessage(ChatColor.YELLOW + "Wähle mit /" + label + " fraktion <lumen|waechter>. Die Wahl gilt dauerhaft.");
+                sender.sendMessage(ChatColor.YELLOW + "Wähle mit /" + label + " fraktion <lumen|waechter|clip>. Die Wahl gilt dauerhaft.");
             }
             for (Faction f : Faction.playable()) {
                 sender.sendMessage("  " + f.colored() + ChatColor.GRAY + ": " + plugin.profiles().count(f) + " Spieler");
@@ -126,7 +126,7 @@ public final class IgCommand implements TabExecutor {
         }
         Optional<Faction> f = Faction.parsePlayable(args[1]);
         if (f.isEmpty()) {
-            sender.sendMessage(ChatColor.RED + "Unbekannte Fraktion. Möglich: lumen, waechter");
+            sender.sendMessage(ChatColor.RED + "Unbekannte Fraktion. Möglich: lumen, waechter, clip");
             return;
         }
         boolean crowded = factions.isOverpopulated(f.get());
@@ -138,7 +138,7 @@ public final class IgCommand implements TabExecutor {
         sender.sendMessage(ChatColor.GOLD + "Willkommen bei " + f.get().colored() + ChatColor.GOLD + "!");
         if (crowded) {
             sender.sendMessage(ChatColor.YELLOW + "Hinweis: " + f.get().colored() + ChatColor.YELLOW
-                    + " hat schon deutlich mehr Spieler als " + f.get().opponent().colored() + ChatColor.YELLOW + ".");
+                    + " hat schon deutlich mehr Spieler als " + factions.smallestOther(f.get()).colored() + ChatColor.YELLOW + ".");
         }
     }
 
@@ -183,7 +183,7 @@ public final class IgCommand implements TabExecutor {
         switch (what) {
             case "fraktion" -> {
                 if (args.length < 4) {
-                    sender.sendMessage(ChatColor.RED + "/" + label + " admin fraktion <spieler> <lumen|waechter>");
+                    sender.sendMessage(ChatColor.RED + "/" + label + " admin fraktion <spieler> <lumen|waechter|clip>");
                     return;
                 }
                 Optional<PlayerProfile> p = plugin.profiles().byName(args[2]);
@@ -407,18 +407,14 @@ public final class IgCommand implements TabExecutor {
     private void standing(CommandSender sender) {
         var score = plugin.score();
         var st = score.standing();
-        long lumen = score.influenceNow(Faction.LUMEN);
-        long waechter = score.influenceNow(Faction.WAECHTER);
         sender.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "Inigresso – Stand");
-        sender.sendMessage(ChatColor.GRAY + "Einfluss jetzt: " + Faction.LUMEN.colored() + " " + ChatColor.WHITE
-                + fmt(lumen) + ChatColor.GRAY + "  |  " + Faction.WAECHTER.colored() + " " + ChatColor.WHITE + fmt(waechter));
+        sender.sendMessage(ChatColor.GRAY + "Einfluss jetzt: " + perFaction(f -> score.influenceNow(f)));
         sender.sendMessage(ChatColor.GRAY + "Zyklus " + DATE.format(java.time.Instant.ofEpochMilli(st.start())) + " – "
                 + DATE.format(java.time.Instant.ofEpochMilli(st.end())) + ", noch "
                 + remaining(st.end() - System.currentTimeMillis()));
         sender.sendMessage(ChatColor.GRAY + "Durchschnitt (" + st.measurements()
                 + (st.measurements() == 1 ? " Messpunkt): " : " Messpunkte): ")
-                + Faction.LUMEN.colored() + " " + ChatColor.WHITE + fmt(st.lumenAvg()) + ChatColor.GRAY + "  |  "
-                + Faction.WAECHTER.colored() + " " + ChatColor.WHITE + fmt(st.waechterAvg()));
+                + perFaction(st::avg));
         sender.sendMessage(ChatColor.GRAY + "Felder: " + plugin.links().fields().size() + ", Links: "
                 + plugin.links().links().size() + ", Portale: " + plugin.portals().all().size());
     }
@@ -443,8 +439,20 @@ public final class IgCommand implements TabExecutor {
         for (var r : last) {
             sender.sendMessage(ChatColor.GRAY + DATE.format(java.time.Instant.ofEpochMilli(r.start())) + ": "
                     + (r.winner() == null ? ChatColor.WHITE + "unentschieden" : r.winner().colored() + ChatColor.GRAY + " gewinnt")
-                    + ChatColor.GRAY + " (" + fmt(r.lumenAvg()) + " : " + fmt(r.waechterAvg()) + ")");
+                    + ChatColor.GRAY + " (" + fmt(r.lumenAvg()) + " : " + fmt(r.waechterAvg()) + " : " + fmt(r.clipAvg()) + ")");
         }
+    }
+
+    /** „Lumen 12 | Wächter 3 | Clip 0“ in Fraktionsfarben. */
+    private String perFaction(java.util.function.ToDoubleFunction<Faction> value) {
+        StringBuilder b = new StringBuilder();
+        for (Faction f : Faction.playable()) {
+            if (b.length() > 0) {
+                b.append(ChatColor.GRAY).append("  |  ");
+            }
+            b.append(f.colored()).append(' ').append(ChatColor.WHITE).append(fmt(value.applyAsDouble(f)));
+        }
+        return b.toString();
     }
 
     private void give(CommandSender sender, String label, String[] args) {
@@ -529,7 +537,7 @@ public final class IgCommand implements TabExecutor {
                 }
             }
         } else if (args.length == 2 && args[0].equalsIgnoreCase("fraktion")) {
-            filter(out, List.of("lumen", "waechter"), args[1]);
+            filter(out, Faction.playableKeys(), args[1]);
         } else if (args.length == 2 && args[0].equalsIgnoreCase("link") && sender instanceof Player p) {
             filter(out, plugin.gameInventory().summary(p).keySet().stream()
                     .filter(g -> g.type() == io.github.cndrbrbr.inigresso.model.GameItem.Type.KEY)
@@ -569,7 +577,7 @@ public final class IgCommand implements TabExecutor {
             } else if (args.length == 3 && args[0].equalsIgnoreCase("vorschlag")) {
                 filter(out, plugin.proposals().open().stream().map(p -> String.valueOf(p.id())).toList(), args[2]);
             } else if (args.length == 4 && args[0].equalsIgnoreCase("admin") && args[1].equalsIgnoreCase("fraktion")) {
-                filter(out, List.of("lumen", "waechter"), args[3]);
+                filter(out, Faction.playableKeys(), args[3]);
             }
         }
         return out;

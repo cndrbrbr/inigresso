@@ -72,6 +72,7 @@ class FactionServiceTest {
     void hinweisBeiUngleichgewicht() {
         for (int i = 0; i < 3; i++) {
             factions.choose(join("w" + i), Faction.WAECHTER);
+            factions.choose(join("c" + i), Faction.CLIP);
         }
         for (int i = 0; i < 3; i++) {
             factions.choose(join("l" + i), Faction.LUMEN);
@@ -80,6 +81,27 @@ class FactionServiceTest {
         factions.choose(join("l3"), Faction.LUMEN); // 4 > 3 * 1.3 = 3.9
         assertTrue(factions.isOverpopulated(Faction.LUMEN));
         assertFalse(factions.isOverpopulated(Faction.WAECHTER));
+    }
+
+    @Test
+    void kleinsteAndereFraktionBekommtDenHinweis() {
+        for (int i = 0; i < 3; i++) {
+            factions.choose(join("l" + i), Faction.LUMEN);
+            factions.choose(join("w" + i), Faction.WAECHTER);
+        }
+        factions.choose(join("c0"), Faction.CLIP);
+        assertEquals(Faction.CLIP, factions.smallestOther(Faction.LUMEN));
+        assertTrue(factions.isOverpopulated(Faction.LUMEN), "3 > 1 * 1.3");
+        assertFalse(factions.isOverpopulated(Faction.CLIP));
+        assertEquals(Faction.CLIP, Faction.parsePlayable("Clip").orElseThrow());
+        assertEquals(List.of("lumen", "waechter", "clip"), Faction.playableKeys());
+    }
+
+    @Test
+    void fuehrungNurBeiEindeutigemHoechstwert() {
+        assertEquals(Faction.CLIP, Faction.leader(f -> f == Faction.CLIP ? 5 : 1));
+        assertNull(Faction.leader(f -> f == Faction.WAECHTER ? 0 : 7));
+        assertNull(Faction.leader(f -> 0));
     }
 
     @Test

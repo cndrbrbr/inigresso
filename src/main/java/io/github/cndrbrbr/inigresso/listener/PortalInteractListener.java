@@ -76,7 +76,7 @@ public final class PortalInteractListener implements Listener {
             return;
         }
         inventory.consumeMainHand(player);
-        burstEffect(player, CombatService.radius(level), me.faction().color());
+        burstEffect(player, CombatService.radius(level), me.faction());
         if (r.hits().isEmpty()) {
             player.sendMessage(ChatColor.GRAY + "Burst L" + level + ": keine gegnerischen Resonatoren in Reichweite ("
                     + CombatService.radius(level) + " Blöcke).");
@@ -93,9 +93,9 @@ public final class PortalInteractListener implements Listener {
         }
     }
 
-    private static void burstEffect(Player player, int radius, ChatColor color) {
+    private static void burstEffect(Player player, int radius, io.github.cndrbrbr.inigresso.model.Faction faction) {
         org.bukkit.Location c = player.getLocation().add(0, 1, 0);
-        org.bukkit.Color rgb = color == ChatColor.GREEN ? org.bukkit.Color.LIME : org.bukkit.Color.fromRGB(0x3c, 0x6e, 0xff);
+        org.bukkit.Color rgb = io.github.cndrbrbr.inigresso.render.NetworkRenderer.color(faction);
         Particle.DustOptions dust = new Particle.DustOptions(rgb, 1.5f);
         for (int i = 0; i < 48; i++) {
             double a = 2 * Math.PI * i / 48;
@@ -124,7 +124,7 @@ public final class PortalInteractListener implements Listener {
         Player player = e.getPlayer();
         PlayerProfile me = profiles.get(player.getUniqueId()).orElseThrow();
         if (!me.hasFaction()) {
-            player.sendMessage(ChatColor.YELLOW + "Wähle zuerst eine Fraktion: /ig fraktion lumen|waechter");
+            player.sendMessage(ChatColor.YELLOW + "Wähle zuerst eine Fraktion: /ig fraktion lumen|waechter|clip");
             return;
         }
         Optional<GameItem> held = items.read(player.getInventory().getItemInMainHand());

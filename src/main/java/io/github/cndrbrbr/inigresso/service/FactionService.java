@@ -50,14 +50,27 @@ public final class FactionService {
     }
 
     /**
-     * Hinweis, wenn f schon mehr als 30 % größer ist als die andere Fraktion (kein Zwang).
-     * Bei sehr wenigen Spielern (andere Fraktion < 3) kein Hinweis, das wäre nur Rauschen.
+     * Hinweis, wenn f schon mehr als 30 % größer ist als die kleinste andere Fraktion (kein Zwang).
+     * Hat f selbst weniger als 3 Spieler, kein Hinweis, das wäre nur Rauschen.
      */
     public boolean isOverpopulated(Faction f) {
         requirePlayable(f);
         long mine = profiles.count(f);
-        long other = profiles.count(f.opponent());
-        return other >= 3 && mine > other * IMBALANCE;
+        long other = profiles.count(smallestOther(f));
+        return mine >= 3 && mine > other * IMBALANCE;
+    }
+
+    /** Die andere spielbare Fraktion mit den wenigsten Spielern (bei Gleichstand die erste). */
+    public Faction smallestOther(Faction f) {
+        Faction best = null;
+        long min = Long.MAX_VALUE;
+        for (Faction o : Faction.playable()) {
+            if (o != f && profiles.count(o) < min) {
+                min = profiles.count(o);
+                best = o;
+            }
+        }
+        return best;
     }
 
     private static void requirePlayable(Faction f) {

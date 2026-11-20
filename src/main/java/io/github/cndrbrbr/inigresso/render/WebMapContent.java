@@ -17,6 +17,7 @@ public final class WebMapContent {
         return switch (f) {
             case LUMEN -> 0x4cdc3a;
             case WAECHTER -> 0x3c6eff;
+            case CLIP -> 0xe8413c;
             case NEUTRAL -> 0x9a9a9a;
         };
     }
@@ -52,11 +53,10 @@ public final class WebMapContent {
 
     /** Spielstand als JSON für den Kasten auf der Webkarte (inigresso-stand.js). */
     public static String standingJson(Sidebar.Data d, long now) {
-        Faction leader = d.lumen().average() > d.waechter().average() ? Faction.LUMEN
-                : d.waechter().average() > d.lumen().average() ? Faction.WAECHTER : null;
+        Faction leader = d.leader();
         StringBuilder b = new StringBuilder("{\"updated\":").append(now)
                 .append(",\"cycleEnd\":").append(now + d.remainingMs()).append(",\"factions\":[");
-        List<Sidebar.Side> sides = List.of(d.lumen(), d.waechter());
+        List<Sidebar.Side> sides = d.sides();
         for (int i = 0; i < sides.size(); i++) {
             Sidebar.Side s = sides.get(i);
             b.append(i > 0 ? "," : "").append("{\"name\":").append(json(s.faction().displayName()))

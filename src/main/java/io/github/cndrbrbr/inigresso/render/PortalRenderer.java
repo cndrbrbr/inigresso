@@ -217,11 +217,12 @@ public final class PortalRenderer implements Listener {
         }
     }
 
-    /** Farbe des Leuchtens: Lumen grün, Wächter blau, neutral grau. */
+    /** Farbe des Leuchtens: Lumen grün, Wächter blau, Clip rot, neutral grau. */
     static org.bukkit.Color glowColor(Faction f) {
         return switch (f) {
             case LUMEN -> org.bukkit.Color.LIME;
             case WAECHTER -> org.bukkit.Color.fromRGB(0x3c, 0x6e, 0xff);
+            case CLIP -> org.bukkit.Color.fromRGB(0xff, 0x3c, 0x3c);
             case NEUTRAL -> org.bukkit.Color.fromRGB(0xb0, 0xb0, 0xb0);
         };
     }

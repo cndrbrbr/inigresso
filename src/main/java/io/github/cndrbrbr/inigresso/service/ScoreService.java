@@ -24,12 +24,28 @@ public final class ScoreService {
         }
     }
 
-    public record Measurement(long ts, long lumen, long waechter) {
+    public record Measurement(long ts, long lumen, long waechter, long clip) {
+        public long of(Faction f) {
+            return switch (f) {
+                case LUMEN -> lumen;
+                case WAECHTER -> waechter;
+                case CLIP -> clip;
+                case NEUTRAL -> 0;
+            };
+        }
     }
 
-    /** winner null = unentschieden. */
-    public record CycleResult(long start, long end, double lumenAvg, double waechterAvg, int measurements,
-                              Faction winner) {
+    /** winner null = unentschieden (Gleichstand an der Spitze). */
+    public record CycleResult(long start, long end, double lumenAvg, double waechterAvg, double clipAvg,
+                              int measurements, Faction winner) {
+        public double avg(Faction f) {
+            return switch (f) {
+                case LUMEN -> lumenAvg;
+                case WAECHTER -> waechterAvg;
+                case CLIP -> clipAvg;
+                case NEUTRAL -> 0;
+            };
+        }
     }
 
     /** Wohin Ergebnisse gehen (Speichern, Ankündigen). */
@@ -101,7 +117,7 @@ public final class ScoreService {
         if (slot > lastSlot) {
             lastSlot = slot;
             Measurement m = new Measurement(slot, influence.applyAsLong(Faction.LUMEN),
-                    influence.applyAsLong(Faction.WAECHTER));
+                    influence.applyAsLong(Faction.WAECHTER), influence.applyAsLong(Faction.CLIP));
             current.add(m);
             sink.measured(m);
         }
@@ -111,8 +127,9 @@ public final class ScoreService {
     static CycleResult result(long start, long end, List<Measurement> in) {
         double l = in.stream().mapToLong(Measurement::lumen).average().orElse(0);
         double w = in.stream().mapToLong(Measurement::waechter).average().orElse(0);
-        Faction winner = l > w ? Faction.LUMEN : w > l ? Faction.WAECHTER : null;
-        return new CycleResult(start, end, l, w, in.size(), winner);
+        double c = in.stream().mapToLong(Measurement::clip).average().orElse(0);
+        CycleResult r = new CycleResult(start, end, l, w, c, in.size(), null);
+        return new CycleResult(start, end, l, w, c, in.size(), Faction.leader(r::avg));
     }
 
     /** Zwischenstand des laufenden Zyklus. */

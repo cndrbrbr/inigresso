@@ -49,7 +49,7 @@ class ScoreServiceTest {
 
     private ScoreService service(long stored, List<ScoreService.Measurement> ms) {
         return new ScoreService(clock, () -> new ScoreService.Rules(DayOfWeek.MONDAY, 168, 60),
-                f -> influence.get(f), sink, stored, ms);
+                f -> influence.getOrDefault(f, 0L), sink, stored, ms);
     }
 
     private static long ms(String iso) {
@@ -71,7 +71,7 @@ class ScoreServiceTest {
         s.tick();
         s.tick();
         assertEquals(1, measured.size());
-        assertEquals(new ScoreService.Measurement(ms("2026-11-13T12:00:00Z"), 50, 0), measured.get(0));
+        assertEquals(new ScoreService.Measurement(ms("2026-11-13T12:00:00Z"), 50, 0, 0), measured.get(0));
         clock.advance(Duration.ofMinutes(30));
         s.tick();
         assertEquals(2, measured.size());
@@ -105,9 +105,25 @@ class ScoreServiceTest {
     }
 
     @Test
+    void clipKannGewinnenUndGleichstandAnDerSpitzeIstUnentschieden() {
+        ScoreService s = service(0, List.of());
+        influence.put(Faction.LUMEN, 30L);
+        influence.put(Faction.WAECHTER, 10L);
+        influence.put(Faction.CLIP, 50L);
+        s.tick();
+        assertEquals(new ScoreService.Measurement(ms("2026-11-13T12:00:00Z"), 30, 10, 50), measured.get(0));
+        assertEquals(Faction.CLIP, s.standing().winner());
+        assertEquals(50.0, s.standing().avg(Faction.CLIP), 1e-9);
+        influence.put(Faction.LUMEN, 70L); // Lumen (30+70)/2 = 50 = Clip
+        clock.advance(Duration.ofHours(1));
+        s.tick();
+        assertNull(s.standing().winner(), "Lumen und Clip gleichauf vorn");
+    }
+
+    @Test
     void verpassteZyklenWerdenNachgeholt() {
         ScoreService s = service(ms("2026-10-26T00:00:00Z"),
-                List.of(new ScoreService.Measurement(ms("2026-10-27T10:00:00Z"), 10, 5)));
+                List.of(new ScoreService.Measurement(ms("2026-10-27T10:00:00Z"), 10, 5, 0)));
         List<ScoreService.CycleResult> r = s.tick();
         assertEquals(2, r.size(), "26.10. und 02.11.");
         assertEquals(Faction.LUMEN, r.get(0).winner());
@@ -128,7 +144,7 @@ class ScoreServiceTest {
     @Test
     void kurzerTestzyklus() {
         ScoreService s = new ScoreService(clock, () -> new ScoreService.Rules(DayOfWeek.MONDAY, 1, 5),
-                f -> influence.get(f), sink, 0, List.of());
+                f -> influence.getOrDefault(f, 0L), sink, 0, List.of());
         assertEquals(ms("2026-11-13T12:00:00Z"), s.cycleStart());
         influence.put(Faction.LUMEN, 7L);
         s.tick();

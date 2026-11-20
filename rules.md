@@ -1,7 +1,7 @@
 # Inigresso – Spielregeln
 
 Inigresso ist ein dauerhaft laufendes Territorialspiel für Spigot 26.3, inspiriert vom
-Spielprinzip „Orte erobern, verbinden, Gebiete aufspannen“. Zwei Fraktionen kämpfen um
+Spielprinzip „Orte erobern, verbinden, Gebiete aufspannen“. Drei Fraktionen kämpfen um
 Portale an Bauwerken der Welt. Portale werden von Spielern vorgeschlagen und von Admins
 freigegeben.
 
@@ -11,13 +11,17 @@ freigegeben.
 |---|---|---|
 | **Lumen** | Grün | `lumen` |
 | **Wächter** | Blau | `waechter` |
+| **Clip** | Rot | `clip` |
 
-- Beim ersten Betreten wählt jeder Spieler mit `/ig fraktion <lumen|waechter>` eine Fraktion.
+- Beim ersten Betreten wählt jeder Spieler mit `/ig fraktion <lumen|waechter|clip>` eine Fraktion.
   Bis dahin kann er nichts erobern, aber herumlaufen und Portale ansehen.
 - Die Wahl ist dauerhaft. Wechsel nur per Admin (`/ig admin fraktion <spieler> <fraktion>`),
   dabei verliert der Spieler seine Schlüssel und Ausrüstung aus dem Spiel.
-- Ist eine Fraktion um mehr als 30 % größer, wird bei der Wahl ein Hinweis angezeigt
-  (kein Zwang). Erst ab 3 Spielern in der kleineren Fraktion, sonst wäre es nur Rauschen.
+- Ist die gewählte Fraktion um mehr als 30 % größer als die kleinste andere, wird bei der
+  Wahl ein Hinweis angezeigt, der die kleinste Fraktion nennt (kein Zwang). Erst ab 3 Spielern
+  in der gewählten Fraktion, sonst wäre es nur Rauschen.
+- Clip kam mit Version 0.14.0 als dritte Fraktion dazu. Jede Fraktion ist für die beiden
+  anderen Gegner: Portale, Links und Felder der anderen beiden kann man angreifen.
 - Mitgliedschaft wird über die UUID gespeichert.
 
 ## 2. Portale
@@ -57,8 +61,8 @@ freigegeben.
 - Der **Kern** ist ein Leitstein (Lodestone). Darüber schwebt eine Textanzeige mit
   Name, Fraktion, Portalstufe und Besitzer.
 - Der Leitstein leuchtet mit einem Umriss in Fraktionsfarbe (Lumen grün, Wächter blau,
-  neutral grau), auch durch Wände sichtbar. Die eigene Fraktion steht am Namen
-  (`[Lumen]`/`[Wächter]`), oben rechts auf dem Scanner und beim Einloggen im Chat.
+  Clip rot, neutral grau), auch durch Wände sichtbar. Die eigene Fraktion steht am Namen
+  (`[Lumen]`/`[Wächter]`/`[Clip]`), oben rechts auf dem Scanner und beim Einloggen im Chat.
 - Rund um den Kern gibt es **8 Resonator-Plätze** (N, NO, O, SO, S, SW, W, NW) im
   Abstand 3. Ein besetzter Platz zeigt einen schwebenden, halb großen Block passend zur
   Resonatorstufe, der in der Fraktionsfarbe leuchtet. Die Welt wird dabei nicht verändert,
@@ -226,8 +230,8 @@ außerhalb des Spiels nachgemacht werden.
 - **Messpunkte**: Jede volle Stunde wird der Gesamteinfluss jeder Fraktion gespeichert.
   War der Server aus, fehlen diese Messpunkte (es wird nichts erfunden).
 - **Zyklus**: Eine Woche (Montag 00:00 bis Sonntag 23:59, Serverzeit). Gewinner ist die
-  Fraktion mit dem höchsten Durchschnitt der Messpunkte, bei Gleichstand (auch ohne
-  Messpunkte) unentschieden. Das Ergebnis wird allen im Chat angekündigt und gespeichert
+  Fraktion mit dem höchsten Durchschnitt der Messpunkte, bei Gleichstand an der Spitze
+  (auch ohne Messpunkte) unentschieden. Das Ergebnis wird allen im Chat angekündigt und gespeichert
   (`/ig stand`, `/ig zyklus alt`). Verpasste Zyklusenden werden beim Start nachgeholt.
 - Starttag, Zykluslänge und Messabstand sind einstellbar (`cycle.start-day`,
   `cycle.length-hours`, `cycle.measure-minutes`), z. B. für kurze Testrunden. Nach einer
@@ -259,7 +263,8 @@ Stufen: 1 = 0 AP, 2 = 2 500, 3 = 20 000, 4 = 70 000, 5 = 150 000, 6 = 300 000,
   Fraktion die **Fläche** aller Felder (Blöcke², überlappende Schichten zählen mehrfach),
   den **Einfluss** jetzt und im Zyklus-Durchschnitt (Ø, entscheidet über den Sieg), die
   Zahl der gehaltenen **Portale** und der **Eroberungen** im Zyklus. Die führende Fraktion
-  (höherer Ø) ist mit ★ markiert.
+  (eindeutig höchster Ø) ist mit ★ markiert. Je Fraktion drei Zeilen: Name, Einfluss mit Ø,
+  dann Fläche · Portale · Eroberungen.
 - **Eroberung** = ein neutrales Portal bekommt seinen ersten Resonator. Darunter stehen die
   drei Spieler mit den meisten Eroberungen im Zyklus (Top-Eroberer).
 - Jeder Spieler kann es mit `/ig scoreboard aus` für sich ausblenden (`/ig scoreboard an`
@@ -269,7 +274,7 @@ Stufen: 1 = 0 AP, 2 = 2 500, 3 = 20 000, 4 = 70 000, 5 = 150 000, 6 = 300 000,
 ### 10.2 Name, Tabliste und Chat
 
 - Jeder Spieler mit Fraktion hat ein eigenes Team: Am **Namensschild** über dem Kopf steht
-  `[Lumen] Name · L3` bzw. `[Wächter] Name · L3` in Fraktionsfarbe, in der **Tabliste**
+  `[Lumen] Name · L3`, `[Wächter] Name · L3` bzw. `[Clip] Name · L3` in Fraktionsfarbe, in der **Tabliste**
   `Name L3`. Die Zahl ist die Inigresso-Spielerstufe (§9) und wird sofort aktualisiert.
 - Beim Einloggen nennt der Chat die eigene Fraktion. Nachrichten, die während der
   Abwesenheit angefallen sind (z. B. Entscheidungen über Vorschläge), kommen beim Login.
@@ -316,7 +321,7 @@ Stufen: 1 = 0 AP, 2 = 2 500, 3 = 20 000, 4 = 70 000, 5 = 150 000, 6 = 300 000,
 
 | Befehl | Wirkung |
 |---|---|
-| `/ig fraktion [lumen\|waechter]` | Fraktion wählen (einmalig); ohne Angabe: Größe beider Fraktionen |
+| `/ig fraktion [lumen\|waechter\|clip]` | Fraktion wählen (einmalig); ohne Angabe: Größe aller Fraktionen |
 | `/ig info` | Eigene Fraktion, Spielerstufe, AP, Inventar-Füllstand, XP-Punkte und die Energie, die sie ergeben |
 | `/ig portal` | Infos zum nächsten Portal im Umkreis von 16 Blöcken |
 | `/ig hilfe` | Liste aller Befehle |
@@ -328,7 +333,7 @@ Stufen: 1 = 0 AP, 2 = 2 500, 3 = 20 000, 4 = 70 000, 5 = 150 000, 6 = 300 000,
 | `/ig ziel <Portal\|#id\|aus>` | Navigation zu einem Portal starten/beenden |
 | `/ig scanner [zoom <Blöcke>\|norden\|drehen]` | Scanner holen bzw. einstellen |
 | `/ig scoreboard [an\|aus]` | Scoreboard rechts für sich ein-/ausblenden |
-| `/ig stand` | Aktueller Einfluss beider Fraktionen, Zyklusstand |
+| `/ig stand` | Aktueller Einfluss aller Fraktionen, Zyklusstand |
 | `/ig zyklus [alt]` | Ergebnis laufender/vergangener Zyklen |
 
 ### Admin (`inigresso.admin`, Standard: op)

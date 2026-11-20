@@ -307,8 +307,8 @@ public final class InigressoPlugin extends JavaPlugin {
                         + org.bukkit.ChatColor.GOLD + " gewinnt!";
         getServer().broadcastMessage(msg);
         getServer().broadcastMessage(org.bukkit.ChatColor.GRAY + String.format(java.util.Locale.GERMANY,
-                "Durchschnittlicher Einfluss: Lumen %,.0f – Wächter %,.0f (%d Messpunkte)",
-                r.lumenAvg(), r.waechterAvg(), r.measurements()));
+                "Durchschnittlicher Einfluss: Lumen %,.0f – Wächter %,.0f – Clip %,.0f (%d Messpunkte)",
+                r.lumenAvg(), r.waechterAvg(), r.clipAvg(), r.measurements()));
         getLogger().info("Zyklus abgeschlossen: " + r);
     }
 
@@ -359,8 +359,8 @@ public final class InigressoPlugin extends JavaPlugin {
         var st = score.standing();
         return (new io.github.cndrbrbr.inigresso.render.Sidebar.Data(
                 score.cycleEnd() - clock.millis(),
-                side(io.github.cndrbrbr.inigresso.model.Faction.LUMEN, st.lumenAvg(), since),
-                side(io.github.cndrbrbr.inigresso.model.Faction.WAECHTER, st.waechterAvg(), since),
+                java.util.Arrays.stream(io.github.cndrbrbr.inigresso.model.Faction.playable())
+                        .map(f -> side(f, st.avg(f), since)).toList(),
                 captures.top(since, 3).stream()
                         .map(e -> new io.github.cndrbrbr.inigresso.render.Sidebar.Top(
                                 profiles.get(e.player()).map(p -> p.lastName()).orElse("?"), e.count()))

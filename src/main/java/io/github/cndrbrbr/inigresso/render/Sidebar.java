@@ -12,7 +12,7 @@ import org.bukkit.scoreboard.Scoreboard;
 
 /**
  * Scoreboard rechts am Bildschirm (Haupt-Scoreboard, für alle gleich): Fläche, Einfluss,
- * Portale und Eroberungen beider Fraktionen, Restzeit des Zyklus, Top-Eroberer.
+ * Portale und Eroberungen aller drei Fraktionen, Restzeit des Zyklus, Top-Eroberer.
  */
 public final class Sidebar {
 
@@ -27,8 +27,13 @@ public final class Sidebar {
     public record Top(String name, int count) {
     }
 
-    /** Alles, was angezeigt wird. */
-    public record Data(long remainingMs, Side lumen, Side waechter, List<Top> top) {
+    /** Alles, was angezeigt wird; sides in der Reihenfolge von Faction.playable(). */
+    public record Data(long remainingMs, List<Side> sides, List<Top> top) {
+        /** Fraktion mit dem eindeutig höchsten Ø-Einfluss, sonst null. */
+        public Faction leader() {
+            return Faction.leader(f -> sides.stream().filter(s -> s.faction() == f)
+                    .mapToDouble(Side::average).findFirst().orElse(0));
+        }
     }
 
     private final List<String> shown = new ArrayList<>();
@@ -37,18 +42,18 @@ public final class Sidebar {
     public static List<String> lines(Data d) {
         List<String> out = new ArrayList<>();
         out.add(ChatColor.GRAY + "Zyklus: noch " + ChatColor.WHITE + remaining(d.remainingMs()));
-        Faction leader = d.lumen().average() > d.waechter().average() ? Faction.LUMEN
-                : d.waechter().average() > d.lumen().average() ? Faction.WAECHTER : null;
-        for (Side s : List.of(d.lumen(), d.waechter())) {
+        Faction leader = d.leader();
+        // 1 + 3 × 3 + Leerzeile + Kopf + 3 Plätze = 15 Zeilen
+        for (Side s : d.sides()) {
             out.add(s.faction().color() + "" + ChatColor.BOLD + s.faction().displayName()
                     + (s.faction() == leader ? ChatColor.GOLD + " ★ führt" : ""));
-            out.add(ChatColor.GRAY + " Fläche: " + ChatColor.WHITE + num(s.area()) + " m²");
             out.add(ChatColor.GRAY + " Einfluss: " + ChatColor.WHITE + num(s.influence())
                     + ChatColor.GRAY + " (Ø " + num(s.average()) + ")");
-            out.add(ChatColor.GRAY + " Portale: " + ChatColor.WHITE + s.portals()
-                    + ChatColor.GRAY + "  Erobert: " + ChatColor.WHITE + s.captures());
-            out.add(""); // 1 + 2 × 5 + Kopf + 3 Plätze = 15 Zeilen
+            out.add(ChatColor.GRAY + " " + ChatColor.WHITE + num(s.area()) + ChatColor.GRAY + " m² · "
+                    + ChatColor.WHITE + s.portals() + ChatColor.GRAY + " Portale · "
+                    + ChatColor.WHITE + s.captures() + ChatColor.GRAY + " erobert");
         }
+        out.add("");
         out.add(ChatColor.GOLD + "Top-Eroberer");
         if (d.top().isEmpty()) {
             out.add(ChatColor.DARK_GRAY + " noch keine");

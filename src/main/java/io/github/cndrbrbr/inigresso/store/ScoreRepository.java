@@ -26,11 +26,11 @@ public final class ScoreRepository {
     public List<ScoreService.Measurement> measurementsSince(long since) throws SQLException {
         List<ScoreService.Measurement> out = new ArrayList<>();
         try (PreparedStatement ps = db.connection().prepareStatement(
-                "SELECT ts, lumen, waechter FROM measurement WHERE ts >= ? ORDER BY ts")) {
+                "SELECT ts, lumen, waechter, clip FROM measurement WHERE ts >= ? ORDER BY ts")) {
             ps.setLong(1, since);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    out.add(new ScoreService.Measurement(rs.getLong(1), rs.getLong(2), rs.getLong(3)));
+                    out.add(new ScoreService.Measurement(rs.getLong(1), rs.getLong(2), rs.getLong(3), rs.getLong(4)));
                 }
             }
         }
@@ -41,13 +41,13 @@ public final class ScoreRepository {
     public List<ScoreService.CycleResult> lastCycles(int limit) throws SQLException {
         List<ScoreService.CycleResult> out = new ArrayList<>();
         try (PreparedStatement ps = db.connection().prepareStatement(
-                "SELECT start_ts, end_ts, lumen_avg, waechter_avg, measurements, winner FROM cycle ORDER BY start_ts DESC LIMIT ?")) {
+                "SELECT start_ts, end_ts, lumen_avg, waechter_avg, clip_avg, measurements, winner FROM cycle ORDER BY start_ts DESC LIMIT ?")) {
             ps.setInt(1, limit);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    String w = rs.getString(6);
+                    String w = rs.getString(7);
                     out.add(new ScoreService.CycleResult(rs.getLong(1), rs.getLong(2), rs.getDouble(3), rs.getDouble(4),
-                            rs.getInt(5), w == null ? null : Faction.valueOf(w)));
+                            rs.getDouble(5), rs.getInt(6), w == null ? null : Faction.valueOf(w)));
                 }
             }
         }
@@ -60,10 +60,11 @@ public final class ScoreRepository {
             public void measured(ScoreService.Measurement m) {
                 db.submit(c -> {
                     try (PreparedStatement ps = c.prepareStatement(
-                            "INSERT OR REPLACE INTO measurement (ts, lumen, waechter) VALUES (?, ?, ?)")) {
+                            "INSERT OR REPLACE INTO measurement (ts, lumen, waechter, clip) VALUES (?, ?, ?, ?)")) {
                         ps.setLong(1, m.ts());
                         ps.setLong(2, m.lumen());
                         ps.setLong(3, m.waechter());
+                        ps.setLong(4, m.clip());
                         ps.executeUpdate();
                     }
                 });
@@ -73,14 +74,15 @@ public final class ScoreRepository {
             public void cycleClosed(ScoreService.CycleResult r) {
                 db.submit(c -> {
                     try (PreparedStatement ps = c.prepareStatement("""
-                            INSERT OR REPLACE INTO cycle (start_ts, end_ts, lumen_avg, waechter_avg, measurements, winner)
-                            VALUES (?, ?, ?, ?, ?, ?)""")) {
+                            INSERT OR REPLACE INTO cycle (start_ts, end_ts, lumen_avg, waechter_avg, clip_avg, measurements, winner)
+                            VALUES (?, ?, ?, ?, ?, ?, ?)""")) {
                         ps.setLong(1, r.start());
                         ps.setLong(2, r.end());
                         ps.setDouble(3, r.lumenAvg());
                         ps.setDouble(4, r.waechterAvg());
-                        ps.setInt(5, r.measurements());
-                        ps.setString(6, r.winner() == null ? null : r.winner().name());
+                        ps.setDouble(5, r.clipAvg());
+                        ps.setInt(6, r.measurements());
+                        ps.setString(7, r.winner() == null ? null : r.winner().name());
                         ps.executeUpdate();
                     }
                 });

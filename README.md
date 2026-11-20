@@ -1,5 +1,5 @@
 # inigresso
-Territorialspiel-Plugin für Spigot 26.3: zwei Fraktionen erobern von Spielern vorgeschlagene
+Territorialspiel-Plugin für Spigot 26.3: drei Fraktionen erobern von Spielern vorgeschlagene
 Portale, verbinden sie mit Links und spannen Felder auf.
 
 | Klares Wetter | Im Schnee |

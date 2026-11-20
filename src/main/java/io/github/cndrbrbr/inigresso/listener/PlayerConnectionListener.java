@@ -52,7 +52,8 @@ public final class PlayerConnectionListener implements Listener {
         if (!p.hasFaction()) {
             player.sendMessage(ChatColor.GOLD + "Willkommen bei Inigresso! " + ChatColor.YELLOW
                     + "Wähle deine Fraktion: " + ChatColor.GREEN + "/ig fraktion lumen" + ChatColor.YELLOW
-                    + " oder " + ChatColor.BLUE + "/ig fraktion waechter" + ChatColor.GRAY + " (gilt dauerhaft)");
+                    + ", " + ChatColor.BLUE + "/ig fraktion waechter" + ChatColor.YELLOW
+                    + " oder " + ChatColor.RED + "/ig fraktion clip" + ChatColor.GRAY + " (gilt dauerhaft)");
         } else {
             player.sendMessage(ChatColor.GOLD + "[Inigresso] " + ChatColor.GRAY + "Du kämpfst für "
                     + p.faction().color() + ChatColor.BOLD + p.faction().displayName() + ChatColor.GRAY + ".");

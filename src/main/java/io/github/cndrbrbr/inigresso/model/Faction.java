@@ -8,6 +8,7 @@ import org.bukkit.ChatColor;
 public enum Faction {
     LUMEN("Lumen", "lumen", ChatColor.GREEN),
     WAECHTER("Wächter", "waechter", ChatColor.BLUE),
+    CLIP("Clip", "clip", ChatColor.RED),
     NEUTRAL("Neutral", "neutral", ChatColor.GRAY);
 
     private final String displayName;
@@ -36,14 +37,6 @@ public enum Faction {
         return color + displayName;
     }
 
-    public Faction opponent() {
-        return switch (this) {
-            case LUMEN -> WAECHTER;
-            case WAECHTER -> LUMEN;
-            case NEUTRAL -> NEUTRAL;
-        };
-    }
-
     /** Spielbare Fraktion aus Eingabe (lumen, waechter, wächter); NEUTRAL ist nicht wählbar. */
     public static Optional<Faction> parsePlayable(String s) {
         String k = s.toLowerCase(Locale.ROOT).replace("ä", "ae");
@@ -56,6 +49,29 @@ public enum Faction {
     }
 
     public static Faction[] playable() {
-        return new Faction[] {LUMEN, WAECHTER};
+        return new Faction[] {LUMEN, WAECHTER, CLIP};
+    }
+
+    /** Schlüssel aller spielbaren Fraktionen, z. B. für Tab-Vervollständigung und Hilfetexte. */
+    public static java.util.List<String> playableKeys() {
+        return java.util.Arrays.stream(playable()).map(Faction::key).toList();
+    }
+
+    /** Spielbare Fraktion mit dem eindeutig höchsten Wert; null bei Gleichstand an der Spitze. */
+    public static Faction leader(java.util.function.ToDoubleFunction<Faction> value) {
+        Faction best = null;
+        double max = Double.NEGATIVE_INFINITY;
+        boolean tie = false;
+        for (Faction f : playable()) {
+            double v = value.applyAsDouble(f);
+            if (v > max) {
+                max = v;
+                best = f;
+                tie = false;
+            } else if (v == max) {
+                tie = true;
+            }
+        }
+        return tie ? null : best;
     }
 }

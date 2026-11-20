@@ -45,8 +45,14 @@ public final class NetworkRenderer {
         this.height = height;
     }
 
-    private static Color color(Faction f) {
-        return f == Faction.LUMEN ? Color.LIME : Color.fromRGB(0x3c, 0x6e, 0xff);
+    /** Linienfarbe je Fraktion (auch für den Burst-Ring). */
+    public static Color color(Faction f) {
+        return switch (f) {
+            case LUMEN -> Color.LIME;
+            case WAECHTER -> Color.fromRGB(0x3c, 0x6e, 0xff);
+            case CLIP -> Color.fromRGB(0xff, 0x3c, 0x3c);
+            case NEUTRAL -> Color.GRAY;
+        };
     }
 
     /** Alle 10 Ticks: Partikel nur auf dem Abschnitt, der nah am Spieler liegt, nur für diesen Spieler. */
@@ -122,7 +128,11 @@ public final class NetworkRenderer {
     }
 
     private static Color fieldColor(Faction f) {
-        return f == Faction.LUMEN ? Color.fromRGB(0x7d, 0xff, 0x6a) : Color.fromRGB(0x6a, 0x9c, 0xff);
+        return switch (f) {
+            case LUMEN -> Color.fromRGB(0x7d, 0xff, 0x6a);
+            case CLIP -> Color.fromRGB(0xff, 0x7a, 0x6a);
+            default -> Color.fromRGB(0x6a, 0x9c, 0xff);
+        };
     }
 
     private static void drawField(Player player, Location loc, Portal a, Portal b, Portal c, double h,
@@ -177,10 +187,18 @@ public final class NetworkRenderer {
                 }
                 continue;
             }
-            long lumen = over.stream().filter(f -> f.faction() == Faction.LUMEN).count();
-            long waechter = over.size() - lumen;
-            Faction top = lumen >= waechter ? Faction.LUMEN : Faction.WAECHTER;
-            long influence = over.stream().filter(f -> f.faction() == top).mapToLong(Field::influence).sum();
+            // Fraktion mit den meisten Feldschichten hier; bei Gleichstand die erste in playable()
+            Faction top = over.get(0).faction();
+            long best = -1;
+            for (Faction f : Faction.playable()) {
+                long n = over.stream().filter(x -> x.faction() == f).count();
+                if (n > best) {
+                    best = n;
+                    top = f;
+                }
+            }
+            Faction shownFaction = top;
+            long influence = over.stream().filter(f -> f.faction() == shownFaction).mapToLong(Field::influence).sum();
             String title = top.color() + "Feld der " + top.displayName()
                     + (over.size() > 1 ? " (" + over.size() + " Schichten)" : "") + " · " + influence + " Einfluss";
             if (bar == null) {
@@ -189,7 +207,11 @@ public final class NetworkRenderer {
                 bars.put(player.getUniqueId(), bar);
             }
             bar.setTitle(title);
-            bar.setColor(top == Faction.LUMEN ? BarColor.GREEN : BarColor.BLUE);
+            bar.setColor(switch (top) {
+                case LUMEN -> BarColor.GREEN;
+                case CLIP -> BarColor.RED;
+                default -> BarColor.BLUE;
+            });
             bar.setProgress(1.0);
         }
         bars.keySet().removeIf(id -> {

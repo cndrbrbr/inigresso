@@ -44,6 +44,8 @@ public final class ScannerRenderer extends MapRenderer {
     private static final byte WAECHTER = MapPalette.matchColor(70, 120, 255);
     private static final byte LUMEN_FIELD = MapPalette.matchColor(40, 120, 30);
     private static final byte WAECHTER_FIELD = MapPalette.matchColor(30, 55, 150);
+    private static final byte CLIP = MapPalette.matchColor(240, 60, 50);
+    private static final byte CLIP_FIELD = MapPalette.matchColor(130, 25, 20);
     private static final byte TARGET = MapPalette.matchColor(255, 200, 40);
 
     private final PortalService portals;
@@ -161,7 +163,7 @@ public final class ScannerRenderer extends MapRenderer {
             double[] pb = screen(proj, b.get());
             double[] pc = screen(proj, c.get());
             img.triangle(pa[0], pa[1], pb[0], pb[1], pc[0], pc[1],
-                    f.faction() == Faction.LUMEN ? LUMEN_FIELD : WAECHTER_FIELD, true);
+                    fieldColor(f.faction()), true);
         }
         for (Link l : allLinks) {
             Optional<Portal> a = lookup.apply(l.from());
@@ -200,7 +202,16 @@ public final class ScannerRenderer extends MapRenderer {
         return switch (f) {
             case LUMEN -> LUMEN;
             case WAECHTER -> WAECHTER;
+            case CLIP -> CLIP;
             case NEUTRAL -> NEUTRAL;
+        };
+    }
+
+    private static byte fieldColor(Faction f) {
+        return switch (f) {
+            case LUMEN -> LUMEN_FIELD;
+            case CLIP -> CLIP_FIELD;
+            default -> WAECHTER_FIELD;
         };
     }
 
