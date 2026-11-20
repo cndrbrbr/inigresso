@@ -33,11 +33,11 @@
         var html = "<div class='ig-head'><b>Inigresso</b> <span class='ig-muted'>Spielstand</span>"
             + "<span class='ig-toggle'>" + (collapsed ? "▸" : "▾") + "</span></div>";
         var f = data.factions;
-        // Kurzfassung immer sichtbar: Ø-Einfluss beider Seiten
+        // Kurzfassung immer sichtbar: Ø-Einfluss aller Fraktionen
         html += "<div class='ig-score'>";
         for (var i = 0; i < f.length; i++) {
             html += "<span style='color:" + f[i].color + "'>" + esc(f[i].name) + " " + num(f[i].average)
-                + (f[i].leader ? " ★" : "") + "</span>" + (i === 0 ? " <span class='ig-muted'>:</span> " : "");
+                + (f[i].leader ? " ★" : "") + "</span>" + (i < f.length - 1 ? " <span class='ig-muted'>·</span> " : "");
         }
         html += "</div>";
         if (!collapsed) {

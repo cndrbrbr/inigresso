@@ -91,8 +91,11 @@ public final class WebMapMarkers {
                     }
                 }
             }
-            api.getWebApp().registerStyle(ASSET_DIR + "/inigresso-stand.css");
-            api.getWebApp().registerScript(ASSET_DIR + "/inigresso-stand.js");
+            // Version anhängen: BlueMap liefert mit max-age=86400 aus, so holen Browser nach
+            // einem Update gleich die neue Fassung.
+            String v = "?v=" + plugin.getDescription().getVersion();
+            api.getWebApp().registerStyle(ASSET_DIR + "/inigresso-stand.css" + v);
+            api.getWebApp().registerScript(ASSET_DIR + "/inigresso-stand.js" + v);
         } catch (IOException | RuntimeException ex) {
             plugin.getLogger().log(Level.WARNING, "Webkarte: Spielstand-Anzeige nicht installiert.", ex);
         }
