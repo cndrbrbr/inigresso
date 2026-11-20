@@ -245,8 +245,17 @@ public final class ScannerRenderer extends MapRenderer {
         }
         for (ScannerLabels.Label l : ScannerLabels.place(proj, world, portals.all(), target, dotSize(span), reserved)) {
             byte c = l.portal().equals(target) ? TARGET : color(l.portal().owner());
-            canvas.drawText(l.x(), l.y(), MinecraftFont.Font, "§" + (c & 0xff) + ";" + l.text());
+            canvas.drawText(l.x(), l.y(), MinecraftFont.Font, colorCode(c) + l.text());
         }
+    }
+
+    /**
+     * Farbcode für MapCanvas.drawText. Spigot liest den Wert mit Byte.parseByte, also muss er
+     * vorzeichenbehaftet sein: bei (c & 0xff) > 127 scheitert das Parsen still und drawText
+     * bricht beim '§' mit einer NullPointerException ab.
+     */
+    static String colorCode(byte c) {
+        return "§" + c + ";";
     }
 
     static double dotSize(int span) {
@@ -260,14 +269,14 @@ public final class ScannerRenderer extends MapRenderer {
         }
         String name = MinecraftFont.Font.isValid(f.displayName()) ? f.displayName() : f.key();
         int w = MinecraftFont.Font.getWidth(name);
-        canvas.drawText(ScannerImage.SIZE - 2 - w, 2, MinecraftFont.Font, "§" + (color(f) & 0xff) + ";" + name);
+        canvas.drawText(ScannerImage.SIZE - 2 - w, 2, MinecraftFont.Font, colorCode(color(f)) + name);
     }
 
     private static void drawLabels(MapCanvas canvas, ScannerProjection proj, int span, boolean rotate) {
-        canvas.drawText(2, 2, MinecraftFont.Font, "§" + (MapPalette.WHITE & 0xff) + ";" + span + "m");
+        canvas.drawText(2, 2, MinecraftFont.Font, colorCode(MapPalette.WHITE) + span + "m");
         if (rotate) {
             int[] n = northLabel(proj);
-            canvas.drawText(n[0], n[1], MinecraftFont.Font, "§" + (MapPalette.RED & 0xff) + ";N");
+            canvas.drawText(n[0], n[1], MinecraftFont.Font, colorCode(MapPalette.RED) + "N");
         }
     }
 
