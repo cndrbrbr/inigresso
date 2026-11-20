@@ -26,6 +26,14 @@ public final class WebMapContent {
         return String.format("#%06x", rgb(f));
     }
 
+    /**
+     * Bis zu welcher Kameraentfernung BlueMap das Portal-Symbol zeigt. Neutrale Portale nur
+     * nah, sonst hält der Browser hunderte Symbole sichtbar und ruckelt beim Schieben.
+     */
+    public static double maxDistance(Portal p, double neutral, double owned) {
+        return p.owner() == Faction.NEUTRAL ? neutral : owned;
+    }
+
     public static String label(Portal p) {
         return "#" + p.id() + " " + p.name();
     }

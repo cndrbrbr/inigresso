@@ -96,6 +96,8 @@ Warnung im Log).
 | `auto-portals.spacing` | 100 | Rasterweite (mind. 16) |
 | `auto-portals.jitter` | 25 | Zufälliger Versatz in der Zelle |
 | `scoreboard.enabled` | true | Scoreboard rechts für alle (Spieler können es mit `/ig scoreboard aus` für sich ausblenden) |
+| `webmap.neutral-max-distance` | 1500 | Webkarte: neutrale Portale erst ab dieser Kameraentfernung (Blöcke) sichtbar |
+| `webmap.owned-max-distance` | 6000 | Webkarte: dasselbe für Portale einer Fraktion |
 
 **XP und Aufladen:** Portale verlieren täglich `decay.percent-per-day` ihrer Energie und werden
 mit Minecraft-XP aufgeladen (1 XP = 10 Energie). Ein volles L8-Portal braucht dafür rund 720 XP
@@ -173,6 +175,10 @@ automatisch den Markersatz „Inigresso“ an: Portale (Symbol in Fraktionsfarbe
 Besitzer, Resonatoren, Koordinaten), Links als Linien und Felder als Flächen in Höhe der Link-Strahlen.
 Aktualisiert wird wenige Sekunden nach jeder Spieländerung, sonst einmal pro Minute. Ohne BlueMap
 passiert nichts (optionale Abhängigkeit). Live z. B. auf https://karte-inigresso.meckminecraft.de/.
+
+Bei vielen Portalen (automatische Portale!) zeigt die Karte neutrale Portale nur beim Heranzoomen
+(`webmap.neutral-max-distance`), sonst ruckelt sie im Browser. Den Webserver davor mit Kompression
+betreiben (Caddy: `encode zstd gzip`) – die Markerdatei ist unkomprimiert mehrere hundert KB groß.
 
 Hinweis für Container mit nicht beschreibbarem Arbeitsverzeichnis: in `plugins/BlueMap/*.conf`
 die relativen Pfade `bluemap/...` auf einen beschreibbaren Ordner umstellen (z. B. `/server/data/bluemap`).

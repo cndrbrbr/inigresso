@@ -56,6 +56,12 @@ class WebMapContentTest {
     }
 
     @Test
+    void neutralePortaleNurNahSichtbar() {
+        assertEquals(1500, WebMapContent.maxDistance(portal("N", Faction.NEUTRAL), 1500, 6000), 1e-9);
+        assertEquals(6000, WebMapContent.maxDistance(portal("C", Faction.CLIP), 1500, 6000), 1e-9);
+    }
+
+    @Test
     void iconIsSvgInFactionColor() {
         String uri = WebMapContent.icon(portal("A", Faction.WAECHTER));
         assertTrue(uri.startsWith("data:image/svg+xml;base64,"));

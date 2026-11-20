@@ -6,7 +6,7 @@
 
     <groupId>io.github.cndrbrbr</groupId>
     <artifactId>inigresso</artifactId>
-    <version>0.14.3</version>
+    <version>0.15.0</version>
     <packaging>jar</packaging>
 
     <name>Inigresso</name>

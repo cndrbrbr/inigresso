@@ -33,7 +33,9 @@ public record InigressoConfig(
         boolean autoPortals,
         int autoSpacing,
         int autoJitter,
-        boolean scoreboard) {
+        boolean scoreboard,
+        double webmapNeutralMaxDistance,
+        double webmapOwnedMaxDistance) {
 
     private static final List<Material> DEFAULT_BLOCKS = List.of(
             Material.COPPER_BLOCK, Material.IRON_BLOCK, Material.GOLD_BLOCK, Material.REDSTONE_BLOCK,
@@ -65,7 +67,9 @@ public record InigressoConfig(
                 c.getBoolean("auto-portals.enabled", false),
                 Math.max(16, c.getInt("auto-portals.spacing", 100)),
                 Math.max(0, c.getInt("auto-portals.jitter", 25)),
-                c.getBoolean("scoreboard.enabled", true));
+                c.getBoolean("scoreboard.enabled", true),
+                Math.max(10, c.getDouble("webmap.neutral-max-distance", 1500)),
+                Math.max(10, c.getDouble("webmap.owned-max-distance", 6000)));
     }
 
     private static List<Material> blocks(List<String> names, java.util.logging.Logger log) {

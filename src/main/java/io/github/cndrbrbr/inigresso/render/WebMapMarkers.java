@@ -53,12 +53,14 @@ public final class WebMapMarkers {
     private final LinkService links;
     private final DoubleSupplier height;
     private final Supplier<Sidebar.Data> standing;
+    private final java.util.function.ToDoubleFunction<Portal> maxDistance;
     private boolean dirty = true;
     private int sinceFull;
 
     public WebMapMarkers(Plugin plugin, PortalService portals, LinkService links, DoubleSupplier height,
-                         Supplier<Sidebar.Data> standing) {
+                         Supplier<Sidebar.Data> standing, java.util.function.ToDoubleFunction<Portal> maxDistance) {
         this.plugin = plugin;
+        this.maxDistance = maxDistance;
         this.standing = standing;
         this.portals = portals;
         this.links = links;
@@ -156,6 +158,7 @@ public final class WebMapMarkers {
                     .detail(WebMapContent.detail(p))
                     .position(Vector3d.from(p.core().x() + 0.5, p.core().y() + 1, p.core().z() + 0.5))
                     .icon(WebMapContent.icon(p), Vector2i.from(11, 11))
+                    .maxDistance(maxDistance.applyAsDouble(p))
                     .build());
         }
         for (Link l : links.links()) {

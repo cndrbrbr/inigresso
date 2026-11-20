@@ -52,3 +52,9 @@ auto-portals:
 # Eroberungen beider Fraktionen, Restzeit des Zyklus, Top-Eroberer.
 scoreboard:
   enabled: true
+
+# Webkarte (BlueMap): bis zu welcher Kameraentfernung (Blöcke) Portal-Symbole sichtbar sind.
+# Neutrale Portale nur nah – bei hunderten Symbolen ruckelt die Karte sonst im Browser.
+webmap:
+  neutral-max-distance: 1500
+  owned-max-distance: 6000
