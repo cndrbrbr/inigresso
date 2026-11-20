@@ -50,6 +50,21 @@ public final class FactionService {
     }
 
     /**
+     * Fraktion durch einen Admin entfernen: Der Spieler wählt danach neu (/ig fraktion).
+     * Spielgegenstände verfallen wie beim Wechsel. Gibt false zurück, wenn er keine hatte.
+     */
+    public boolean adminClear(PlayerProfile p) {
+        Faction previous = p.faction();
+        if (previous == null) {
+            return false;
+        }
+        p.setFaction(null);
+        bus.publish(new GameEvent.ProfileChanged(p));
+        bus.publish(new GameEvent.FactionChanged(p, previous));
+        return true;
+    }
+
+    /**
      * Hinweis, wenn f schon mehr als 30 % größer ist als die kleinste andere Fraktion (kein Zwang).
      * Hat f selbst weniger als 3 Spieler, kein Hinweis, das wäre nur Rauschen.
      */

@@ -16,7 +16,8 @@ freigegeben.
 - Beim ersten Betreten wählt jeder Spieler mit `/ig fraktion <lumen|waechter|clip>` eine Fraktion.
   Bis dahin kann er nichts erobern, aber herumlaufen und Portale ansehen.
 - Die Wahl ist dauerhaft. Wechsel nur per Admin (`/ig admin fraktion <spieler> <fraktion>`),
-  dabei verliert der Spieler seine Schlüssel und Ausrüstung aus dem Spiel.
+  dabei verliert der Spieler seine Schlüssel und Ausrüstung aus dem Spiel. Mit
+  `/ig admin fraktion <spieler|alle> keine` entfernt ein Admin die Fraktion, der Spieler wählt neu.
 - Ist die gewählte Fraktion um mehr als 30 % größer als die kleinste andere, wird bei der
   Wahl ein Hinweis angezeigt, der die kleinste Fraktion nennt (kein Zwang). Erst ab 3 Spielern
   in der gewählten Fraktion, sonst wäre es nur Rauschen.

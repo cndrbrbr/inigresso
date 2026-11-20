@@ -61,6 +61,19 @@ class FactionServiceTest {
     }
 
     @Test
+    void adminEntferntFraktionUndSpielerWaehltNeu() {
+        PlayerProfile p = join("dora");
+        factions.choose(p, Faction.LUMEN);
+        events.clear();
+        assertTrue(factions.adminClear(p));
+        assertNull(p.faction());
+        assertTrue(events.contains(new GameEvent.FactionChanged(p, Faction.LUMEN)), "Gegenstände verfallen");
+        assertFalse(factions.adminClear(p), "nichts mehr zu entfernen");
+        assertEquals(FactionService.ChooseResult.OK, factions.choose(p, Faction.CLIP));
+        assertEquals(Faction.CLIP, p.faction());
+    }
+
+    @Test
     void neutralIstNichtWaehlbar() {
         PlayerProfile p = join("carl");
         assertThrows(IllegalArgumentException.class, () -> factions.choose(p, Faction.NEUTRAL));

@@ -51,6 +51,7 @@ Alle brauchen `inigresso.admin` (Standard: op).
 | `/ig admin portal neutral <#id>` | Resonatoren entfernen, Portal wird neutral |
 | `/ig admin portal loeschen <#id> bestaetigen` | Portal ganz entfernen |
 | `/ig admin fraktion <Spieler> <lumen\|waechter\|clip>` | Fraktion wechseln (Spielgegenstände der alten Fraktion verfallen) |
+| `/ig admin fraktion <Spieler\|alle> keine` | Fraktion entfernen, Spieler wählen neu (Spielgegenstände verfallen, AP/Stufe bleiben) |
 | `/ig admin geben <Spieler> <resonator\|burst\|schluessel> <Stufe\|#Portal> [Anzahl]` | Gegenstände geben (Tests, Ersatz) |
 | `/ig admin ap <Spieler> <+/-Menge>` | AP korrigieren |
 | `/ig info <Spieler>` | Profil eines Spielers (Fraktion, Stufe, AP; ist er online, auch Spielgegenstände und XP) |

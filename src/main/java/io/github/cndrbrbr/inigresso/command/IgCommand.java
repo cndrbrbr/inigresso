@@ -183,7 +183,12 @@ public final class IgCommand implements TabExecutor {
         switch (what) {
             case "fraktion" -> {
                 if (args.length < 4) {
-                    sender.sendMessage(ChatColor.RED + "/" + label + " admin fraktion <spieler> <lumen|waechter|clip>");
+                    sender.sendMessage(ChatColor.RED + "/" + label + " admin fraktion <spieler> <lumen|waechter|clip|keine>"
+                            + " oder " + "/" + label + " admin fraktion alle keine");
+                    return;
+                }
+                if (args[3].equalsIgnoreCase("keine")) {
+                    clearFactions(sender, args[2]);
                     return;
                 }
                 Optional<PlayerProfile> p = plugin.profiles().byName(args[2]);
@@ -443,6 +448,36 @@ public final class IgCommand implements TabExecutor {
         }
     }
 
+    /** Fraktion eines Spielers oder aller Spieler („alle“) entfernen; sie wählen danach neu. */
+    private void clearFactions(CommandSender sender, String who) {
+        List<PlayerProfile> targets;
+        if (who.equalsIgnoreCase("alle")) {
+            targets = List.copyOf(plugin.profiles().all());
+        } else {
+            Optional<PlayerProfile> p = plugin.profiles().byName(who);
+            if (p.isEmpty()) {
+                sender.sendMessage(ChatColor.RED + "Spieler unbekannt.");
+                return;
+            }
+            targets = List.of(p.get());
+        }
+        int cleared = 0;
+        for (PlayerProfile p : targets) {
+            if (!plugin.factions().adminClear(p)) {
+                continue;
+            }
+            cleared++;
+            Player online = plugin.getServer().getPlayer(p.uuid());
+            if (online != null) {
+                online.sendMessage(ChatColor.GOLD + "Ein Admin hat deine Fraktion zurückgesetzt. Wähle neu: "
+                        + ChatColor.GREEN + "/ig fraktion lumen" + ChatColor.GOLD + ", " + ChatColor.BLUE + "waechter"
+                        + ChatColor.GOLD + " oder " + ChatColor.RED + "clip");
+            }
+        }
+        plugin.audit(sender.getName(), "fraktion", who + " -> keine (" + cleared + " Spieler)");
+        sender.sendMessage(ChatColor.GREEN + "Fraktion bei " + cleared + " Spieler(n) entfernt. Spielgegenstände verfallen.");
+    }
+
     /** „Lumen 12 | Wächter 3 | Clip 0“ in Fraktionsfarben. */
     private String perFaction(java.util.function.ToDoubleFunction<Faction> value) {
         StringBuilder b = new StringBuilder();
@@ -566,6 +601,10 @@ public final class IgCommand implements TabExecutor {
                 filter(out, List.of("liste", "umbenennen", "verschieben", "loeschen", "neutral", "tp"), args[2]);
             } else if (args.length == 4 && args[0].equalsIgnoreCase("admin") && args[1].equalsIgnoreCase("portal")) {
                 filter(out, plugin.portals().all().stream().map(p -> "#" + p.id()).toList(), args[3]);
+            } else if (args.length == 3 && args[0].equalsIgnoreCase("admin") && args[1].equalsIgnoreCase("fraktion")) {
+                List<String> names = new java.util.ArrayList<>(onlineNames());
+                names.add("alle");
+                filter(out, names, args[2]);
             } else if (args.length == 3 && args[0].equalsIgnoreCase("admin")) {
                 filter(out, onlineNames(), args[2]);
             } else if (args.length == 4 && args[0].equalsIgnoreCase("admin") && args[1].equalsIgnoreCase("geben")) {
@@ -577,7 +616,9 @@ public final class IgCommand implements TabExecutor {
             } else if (args.length == 3 && args[0].equalsIgnoreCase("vorschlag")) {
                 filter(out, plugin.proposals().open().stream().map(p -> String.valueOf(p.id())).toList(), args[2]);
             } else if (args.length == 4 && args[0].equalsIgnoreCase("admin") && args[1].equalsIgnoreCase("fraktion")) {
-                filter(out, Faction.playableKeys(), args[3]);
+                List<String> keys = new java.util.ArrayList<>(Faction.playableKeys());
+                keys.add("keine");
+                filter(out, keys, args[3]);
             }
         }
         return out;
