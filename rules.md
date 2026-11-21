@@ -200,8 +200,10 @@ außerhalb des Spiels nachgemacht werden.
   - man hat einen Schlüssel von B (der Schlüssel wird verbraucht),
   - B gehört der eigenen Fraktion,
   - die Entfernung ist höchstens die Reichweite von A:
-    `64 × Portalstufe²` Blöcke (L1: 64, L2: 256, L3: 576, L4: 1024, L5: 1600),
-    gekappt auf `link.max-range` (Standard 2000 Blöcke),
+    `160 × Portalstufe²` Blöcke (L1: 160, L2: 640, L3: 1440, ab L4: 2000),
+    gekappt auf `link.max-range` (Standard 2000 Blöcke); die Grundreichweite 160 ist
+    `link.range-base`. Schon Portale der Stufe 1 erreichen so ihre Nachbarn im
+    100-Blöcke-Raster der automatischen Portale,
   - der Link kreuzt keinen bestehenden Link (egal welcher Fraktion), berechnet in der
     X/Z-Ebene; ein Link, der genau durch ein anderes Portal oder über einen anderen Link
     läuft, zählt ebenfalls als Kreuzung,

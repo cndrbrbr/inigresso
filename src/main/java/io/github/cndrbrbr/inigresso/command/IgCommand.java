@@ -339,7 +339,7 @@ public final class IgCommand implements TabExecutor {
         var here = PortalCommands.pos(player.getLocation());
         var from = plugin.portals().nearest(here, io.github.cndrbrbr.inigresso.service.LinkService.LINK_DISTANCE);
         if (from.isEmpty()) {
-            sender.sendMessage(ChatColor.RED + "Stell dich direkt an das Portal, von dem der Link ausgehen soll.");
+            sender.sendMessage(ChatColor.RED + "Stell dich direkt an das Portal, von dem der Link ausgehen soll (höchstens 6 Blöcke vom Kern).");
             return;
         }
         String query = String.join(" ", java.util.Arrays.copyOfRange(args, 1, args.length));
@@ -358,6 +358,17 @@ public final class IgCommand implements TabExecutor {
         }
         if (problem.isPresent()) {
             sender.sendMessage(ChatColor.RED + linkProblem(problem.get(), from.get(), to.get()));
+            if (problem.get().problem() == io.github.cndrbrbr.inigresso.service.LinkService.Problem.TOO_FAR) {
+                double dist = Math.hypot(from.get().core().x() - to.get().core().x(), from.get().core().z() - to.get().core().z());
+                int need = links.levelNeeded(dist);
+                sender.sendMessage(ChatColor.GRAY + (need < 0
+                        ? "So weit reicht kein Portal (höchstens " + links.rangeFor(8) + " Blöcke). Nimm ein Zwischenportal."
+                        : "Dafür braucht " + from.get().name() + " Portalstufe " + need + " (jetzt " + Math.max(1, from.get().level())
+                                + "). Die Portalstufe ist der Durchschnitt der 8 Resonatoren – setz stärkere ein."));
+            }
+            if (problem.get().problem() == io.github.cndrbrbr.inigresso.service.LinkService.Problem.SAME_PORTAL) {
+                sender.sendMessage(ChatColor.GRAY + "Du stehst an " + from.get().name() + ". Gib das Portal an, zu dem der Link gehen soll.");
+            }
             return;
         }
         plugin.gameInventory().consume(player, key);
@@ -385,7 +396,7 @@ public final class IgCommand implements TabExecutor {
             case SAME_PORTAL -> "Ein Portal kann nicht mit sich selbst verlinkt werden.";
             case TARGET_NOT_OWN -> to.name() + " gehört nicht deiner Fraktion.";
             case OTHER_WORLD -> "Die Portale liegen in verschiedenen Welten.";
-            case TOO_FAR -> "Zu weit: " + r.detail() + " Blöcke. Rüste " + from.name() + " auf, um weiter zu reichen.";
+            case TOO_FAR -> "Zu weit: " + r.detail().replace("/", " Blöcke, Reichweite von " + from.name() + ": ") + " Blöcke.";
             case ALREADY_LINKED -> "Die beiden Portale sind schon verlinkt.";
             case TOO_MANY_OUTGOING -> "Von " + from.name() + " gehen schon " + r.detail() + " Links aus.";
             case CROSSES -> "Der Link würde " + r.detail() + " kreuzen.";

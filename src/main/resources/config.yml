@@ -13,6 +13,9 @@ proposal:
   max-open: 3
 
 link:
+  # Reichweite eines Portals = range-base × Portalstufe², höchstens max-range (Blöcke).
+  # 160: L1 160, L2 640, L3 1440, ab L4 2000.
+  range-base: 160
   max-range: 2000
   max-outgoing: 8
   # Höhe des Partikelstrahls über dem Kernblock (Blöcke)

@@ -30,8 +30,14 @@ public final class LinkService {
     /** Wie nah man am Ausgangsportal stehen muss. */
     public static final double LINK_DISTANCE = 6;
 
-    public record Rules(int maxRange, int maxOutgoing) {
+    public record Rules(int maxRange, int maxOutgoing, int rangeBase) {
+        /** Standard-Grundreichweite 160 (rules.md §6). */
+        public Rules(int maxRange, int maxOutgoing) {
+            this(maxRange, maxOutgoing, DEFAULT_RANGE_BASE);
+        }
     }
+
+    public static final int DEFAULT_RANGE_BASE = 160;
 
     public enum Problem {
         NO_FACTION, NOT_AT_PORTAL, SOURCE_NOT_OWN, SOURCE_NOT_FULL, SAME_PORTAL, TARGET_NOT_OWN,
@@ -78,10 +84,26 @@ public final class LinkService {
         bus.subscribe(GameEvent.PortalRemoved.class, e -> removeLinksOf(e.portal().id()));
     }
 
-    /** Reichweite nach rules.md §6: 64 × Stufe², gekappt. */
+    /** Reichweite nach rules.md §6: Grundreichweite × Stufe², gekappt. */
     public int range(Portal p) {
         int level = p.level();
-        return Math.min(64 * level * level, rules.get().maxRange());
+        return rangeFor(level);
+    }
+
+    /** Reichweite eines Portals der Stufe level. */
+    public int rangeFor(int level) {
+        Rules r = rules.get();
+        return Math.min(Math.max(1, r.rangeBase()) * level * level, r.maxRange());
+    }
+
+    /** Kleinste Portalstufe, deren Reichweite für dist reicht, sonst -1. */
+    public int levelNeeded(double dist) {
+        for (int l = 1; l <= 8; l++) {
+            if (rangeFor(l) >= dist) {
+                return l;
+            }
+        }
+        return -1;
     }
 
     /** Prüft alle Bedingungen außer dem Schlüssel. */
