@@ -9,7 +9,8 @@ import java.util.List;
 /**
  * Wo die Portalnummern auf dem Scanner stehen. Ohne Bukkit: Schriftbreite wird für Ziffern
  * der Karten-Schrift angenähert (5 Pixel + 1 Abstand, 7 hoch). Nummern dürfen sich nicht
- * überlappen; Portale nahe am Spieler und das Navigationsziel haben Vorrang.
+ * überlappen und keinen Portalpunkt verdecken; Portale nahe am Spieler und das Navigationsziel
+ * haben Vorrang.
  */
 public final class ScannerLabels {
 
@@ -48,12 +49,19 @@ public final class ScannerLabels {
         record Spot(Portal p, double x, double y, double d) {
         }
         List<Spot> order = new ArrayList<>();
+        int r = (int) Math.ceil(dot);
         for (Portal p : portals) {
-            if (!p.core().world().equals(world) || (proj.span() > MAX_SPAN && !p.equals(target))) {
+            if (!p.core().world().equals(world)) {
                 continue;
             }
             double[] s = screen(proj, p);
-            if (ScannerProjection.visible(s, 0)) {
+            if (!ScannerProjection.visible(s, 3)) {
+                continue;
+            }
+            int px = (int) Math.round(s[0]);
+            int py = (int) Math.round(s[1]);
+            used.add(new Box(px - r, py - r, px + r, py + r)); // Punkt nicht mit Nummern verdecken
+            if ((proj.span() <= MAX_SPAN || p.equals(target)) && ScannerProjection.visible(s, 0)) {
                 order.add(new Spot(p, s[0], s[1], p.equals(target) ? -1 : Math.hypot(s[0] - mid, s[1] - mid)));
             }
         }

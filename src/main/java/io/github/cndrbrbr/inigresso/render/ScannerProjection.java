@@ -26,9 +26,14 @@ public record ScannerProjection(double centerX, double centerZ, double heading, 
             return new double[] {MID + dx, MID + dz};
         }
         double h = Math.toRadians(heading);
-        double cos = Math.cos(h);
-        double sin = Math.sin(h);
+        // Rundungsrest bei 90°/180°/270° entfernen, sonst knicken Gitterlinien um ein Pixel.
+        double cos = snap(Math.cos(h));
+        double sin = snap(Math.sin(h));
         return new double[] {MID + dx * cos + dz * sin, MID + dz * cos - dx * sin};
+    }
+
+    private static double snap(double v) {
+        return Math.abs(v) < 1e-9 ? 0 : v;
     }
 
     /** Liegt der Pixel im Bild (mit Rand)? */

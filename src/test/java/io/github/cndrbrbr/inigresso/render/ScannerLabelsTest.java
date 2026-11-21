@@ -68,4 +68,21 @@ class ScannerLabelsTest {
             assertEquals("9", l.text());
         }
     }
+
+    @Test
+    void nummerVerdecktKeinenAnderenPunkt() {
+        // Portal 24 rechts von 22, genau dort, wo die Nummer von 22 stünde
+        Portal a = portal(22, 20, 40);
+        Portal b = portal(24, 36, 40);
+        var labels = ScannerLabels.place(NORTH, "world", List.of(a, b), null, 2, List.of());
+        for (var l : labels) {
+            for (Portal p : List.of(a, b)) {
+                double[] s = NORTH.toScreen(p.core().x() + 0.5, p.core().z() + 0.5);
+                boolean covers = s[0] >= l.x() - 2 && s[0] <= l.x() + ScannerLabels.width(l.text()) + 2
+                        && s[1] >= l.y() - 2 && s[1] <= l.y() + ScannerLabels.HEIGHT + 2;
+                assertFalse(covers, "Nummer " + l.text() + " verdeckt Portal " + p.id());
+            }
+        }
+        assertEquals(2, labels.size());
+    }
 }
