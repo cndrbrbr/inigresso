@@ -210,7 +210,8 @@ public final class InigressoPlugin extends JavaPlugin {
         }
         guard.keepAlso(scanner::isScanner);
         getServer().getPluginManager().registerEvents(
-                new io.github.cndrbrbr.inigresso.listener.ScannerListener(scanner, scannerRenderer, navigator, bus), this);
+                new io.github.cndrbrbr.inigresso.listener.ScannerListener(this, scanner, scannerRenderer, navigator, bus,
+                        id -> profiles.get(id).map(pr -> pr.hasFaction()).orElse(false)), this);
         getServer().getScheduler().runTaskTimer(this, navigator::tick, 10L, 10L);
         sidebar = new io.github.cndrbrbr.inigresso.render.Sidebar();
         getServer().getScheduler().runTaskTimer(this, this::updateSidebar, 40L, 20L);

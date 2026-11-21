@@ -25,11 +25,17 @@ public final class ScannerListener implements Listener {
     private final Scanner scanner;
     private final ScannerRenderer renderer;
     private final Navigator navigator;
+    private final org.bukkit.plugin.Plugin plugin;
+    /** Hat der Spieler (UUID) eine Fraktion? Dann gehört ein Scanner ins Inventar. */
+    private final java.util.function.Predicate<java.util.UUID> hasFaction;
 
-    public ScannerListener(Scanner scanner, ScannerRenderer renderer, Navigator navigator, GameEventBus bus) {
+    public ScannerListener(org.bukkit.plugin.Plugin plugin, Scanner scanner, ScannerRenderer renderer,
+            Navigator navigator, GameEventBus bus, java.util.function.Predicate<java.util.UUID> hasFaction) {
+        this.plugin = plugin;
         this.scanner = scanner;
         this.renderer = renderer;
         this.navigator = navigator;
+        this.hasFaction = hasFaction;
         bus.subscribe(GameEvent.FactionChanged.class, e -> {
             Player p = Bukkit.getPlayer(e.profile().uuid());
             if (p != null && e.previous() == null && !scanner.has(p)) {
@@ -64,7 +70,17 @@ public final class ScannerListener implements Listener {
 
     @EventHandler
     public void onJoin(PlayerJoinEvent e) {
-        scanner.fix(e.getPlayer());
+        Player p = e.getPlayer();
+        scanner.fix(p);
+        // Verlorene Scanner (Tod, volles Inventar, weggeworfen) ersetzen. Einen Tick später,
+        // damit das Profil sicher geladen ist und gehaltene Tode erst respawnen.
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            if (p.isOnline() && !p.isDead() && hasFaction.test(p.getUniqueId()) && !scanner.has(p)) {
+                scanner.give(p);
+                p.sendMessage(ChatColor.GOLD + "Dein " + ChatColor.WHITE + "Scanner" + ChatColor.GOLD
+                        + " fehlte und wurde ersetzt. " + ChatColor.GRAY + "Neuen holen: /ig scanner");
+            }
+        }, 20L);
     }
 
     @EventHandler

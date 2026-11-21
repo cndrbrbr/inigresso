@@ -128,7 +128,13 @@ public final class ItemGuardListener implements Listener {
     public void onRespawn(PlayerRespawnEvent e) {
         List<ItemStack> mine = kept.remove(e.getPlayer().getUniqueId());
         if (mine != null) {
-            e.getPlayer().getInventory().addItem(mine.toArray(new ItemStack[0]));
+            Player p = e.getPlayer();
+            // Was nicht mehr passt, fallen lassen statt verlieren (Respawn-Ort ist erst danach gültig).
+            var rest = p.getInventory().addItem(mine.toArray(new ItemStack[0]));
+            if (!rest.isEmpty()) {
+                Bukkit.getScheduler().runTask(org.bukkit.plugin.java.JavaPlugin.getProvidingPlugin(getClass()),
+                        () -> rest.values().forEach(s -> p.getWorld().dropItemNaturally(p.getLocation(), s)));
+            }
         }
     }
 
