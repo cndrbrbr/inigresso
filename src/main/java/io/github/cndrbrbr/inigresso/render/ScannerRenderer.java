@@ -23,7 +23,7 @@ import org.bukkit.map.MapView;
 import org.bukkit.map.MinecraftFont;
 
 /**
- * Scanner-Karte: dunkler Hintergrund mit Gitter, Felder als gerasterte Fläche, Links als
+ * Scanner-Karte: blaugrauer Hintergrund (hell genug für Nacht und Höhlen) mit Gitter, Felder als gerasterte Fläche, Links als
  * Linien, Portale als Punkte in Fraktionsfarbe. Kontextbezogen, d. h. jeder Spieler sieht
  * seine eigene Umgebung auf derselben Karten-ID.
  */
@@ -37,8 +37,8 @@ public final class ScannerRenderer extends MapRenderer {
     static final long MIN_MS = 100;
     static final long REFRESH_MS = 1000;
 
-    private static final byte BG = MapPalette.matchColor(14, 16, 24);
-    private static final byte GRID = MapPalette.matchColor(38, 48, 66);
+    private static final byte BG = MapPalette.matchColor(60, 66, 82);
+    private static final byte GRID = MapPalette.matchColor(95, 105, 125);
     private static final byte NEUTRAL = MapPalette.matchColor(170, 170, 170);
     private static final byte LUMEN = MapPalette.matchColor(110, 240, 70);
     private static final byte WAECHTER = MapPalette.matchColor(70, 120, 255);

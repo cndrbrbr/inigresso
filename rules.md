@@ -300,7 +300,7 @@ Stufen: 1 = 0 AP, 2 = 2 500, 3 = 20 000, 4 = 70 000, 5 = 150 000, 6 = 300 000,
 
 - Jeder Spieler bekommt bei der Fraktionswahl einen **Scanner**: eine Karte, die das Plugin
   selbst zeichnet. Verloren? `/ig scanner` gibt einen neuen. Beim Tod bleibt er erhalten.
-- Der Scanner zeigt auf dunklem Hintergrund mit Gitter **alle** Portale (Punkte in
+- Der Scanner zeigt auf blaugrauem Hintergrund mit Gitter **alle** Portale (Punkte in
   Fraktionsfarbe, neutral grau), alle Links (Linien) und Felder (gerasterte Flächen).
   Neben den Punkten steht die Portalnummer (`#id`, wie bei `/ig ziel #id`), bei 1024 Blöcken
   Kartenbreite nur noch die des Ziels. Der Spieler ist der Pfeil in der Mitte.
