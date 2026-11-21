@@ -30,14 +30,16 @@ public final class LinkService {
     /** Wie nah man am Ausgangsportal stehen muss. */
     public static final double LINK_DISTANCE = 6;
 
-    public record Rules(int maxRange, int maxOutgoing, int rangeBase) {
-        /** Standard-Grundreichweite 160 (rules.md §6). */
+    public record Rules(int maxRange, int maxOutgoing, int rangeBase, int rangeGrowth) {
+        /** Standardwerte (rules.md §6). */
         public Rules(int maxRange, int maxOutgoing) {
-            this(maxRange, maxOutgoing, DEFAULT_RANGE_BASE);
+            this(maxRange, maxOutgoing, DEFAULT_RANGE_BASE, DEFAULT_RANGE_GROWTH);
         }
     }
 
-    public static final int DEFAULT_RANGE_BASE = 160;
+    /** Reichweite Stufe 1: deckt alle acht Nachbarzellen im 100er-Raster der Auto-Portale (bis ~212). */
+    public static final int DEFAULT_RANGE_BASE = 250;
+    public static final int DEFAULT_RANGE_GROWTH = 100;
 
     public enum Problem {
         NO_FACTION, NOT_AT_PORTAL, SOURCE_NOT_OWN, SOURCE_NOT_FULL, SAME_PORTAL, TARGET_NOT_OWN,
@@ -84,7 +86,7 @@ public final class LinkService {
         bus.subscribe(GameEvent.PortalRemoved.class, e -> removeLinksOf(e.portal().id()));
     }
 
-    /** Reichweite nach rules.md §6: Grundreichweite × Stufe², gekappt. */
+    /** Reichweite nach rules.md §6: Grundreichweite + Zuwachs × (Stufe² − 1), gekappt. */
     public int range(Portal p) {
         int level = p.level();
         return rangeFor(level);
@@ -93,7 +95,8 @@ public final class LinkService {
     /** Reichweite eines Portals der Stufe level. */
     public int rangeFor(int level) {
         Rules r = rules.get();
-        return Math.min(Math.max(1, r.rangeBase()) * level * level, r.maxRange());
+        long range = Math.max(1, r.rangeBase()) + (long) Math.max(0, r.rangeGrowth()) * (level * level - 1);
+        return (int) Math.min(range, r.maxRange());
     }
 
     /** Kleinste Portalstufe, deren Reichweite für dist reicht, sonst -1. */

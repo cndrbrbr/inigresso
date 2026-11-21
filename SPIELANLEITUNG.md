@@ -246,14 +246,14 @@ Voraussetzungen:
 - A gehört deiner Fraktion und hat **alle 8 Resonatoren**.
 - Du hast einen **Schlüssel von B** – er wird dabei verbraucht.
 - B gehört ebenfalls deiner Fraktion.
-- B liegt in **Reichweite** von A: 160 × Portalstufe² Blöcke, höchstens 2000.
+- B liegt in **Reichweite** von A:
 
-| Portalstufe von A | 1 | 2 | 3 | ab 4 |
-|---|---|---|---|---|
-| Reichweite (Blöcke) | 160 | 640 | 1440 | 2000 |
+| Portalstufe von A | 1 | 2 | 3 | 4 | ab 5 |
+|---|---|---|---|---|---|
+| Reichweite (Blöcke) | 250 | 550 | 1050 | 1750 | 2000 |
 
-Schon ein Portal der Stufe 1 erreicht seine Nachbarportale (die meisten liegen etwa 100 Blöcke
-auseinander). Ist das Ziel zu weit weg, sagt dir die Meldung, welche Portalstufe nötig wäre.
+Schon ein Portal der Stufe 1 erreicht alle Nachbarportale, auch die schräg daneben (die
+Portale liegen etwa 100 Blöcke auseinander). Ist das Ziel zu weit weg, sagt dir die Meldung, welche Portalstufe nötig wäre.
 `/ig portal` zeigt die Reichweite des Portals, an dem du stehst.
 
 - Der Link darf **keinen anderen Link kreuzen** – egal welcher Fraktion (von oben gesehen).

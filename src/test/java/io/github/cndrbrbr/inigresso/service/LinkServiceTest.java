@@ -65,15 +65,18 @@ class LinkServiceTest {
     @Test
     void reichweite() {
         Portal a = portal("A", 0, 0, Faction.LUMEN, 1);
-        Portal b = portal("B", 160, 0, Faction.LUMEN, 1);
-        Portal c = portal("C", 0, 161, Faction.LUMEN, 1);
-        assertEquals(160, links.range(a), "Stufe 1 erreicht die Nachbarportale im 100er-Raster");
+        Portal b = portal("B", 150, 150, Faction.LUMEN, 1); // diagonaler Nachbar, ganz versetzt (212)
+        Portal c = portal("C", 0, 251, Faction.LUMEN, 1);
+        assertEquals(250, links.range(a), "Stufe 1 erreicht alle Nachbarzellen im 100er-Raster");
         assertTrue(link(lumen, a, b).ok());
         assertEquals(Problem.TOO_FAR, link(lumen, a, c).problem());
-        assertEquals("161/160", link(lumen, a, c).detail());
-        assertEquals(1, links.levelNeeded(160));
-        assertEquals(2, links.levelNeeded(161));
-        assertEquals(4, links.levelNeeded(2000));
+        assertEquals("251/250", link(lumen, a, c).detail());
+        assertEquals(550, links.rangeFor(2));
+        assertEquals(1050, links.rangeFor(3));
+        assertEquals(1750, links.rangeFor(4));
+        assertEquals(1, links.levelNeeded(250));
+        assertEquals(2, links.levelNeeded(251));
+        assertEquals(5, links.levelNeeded(2000));
         assertEquals(-1, links.levelNeeded(2001));
         Portal far = portal("Weit", 3000, 0, Faction.LUMEN, 8);
         assertEquals(2000, links.range(far), "gekappt");

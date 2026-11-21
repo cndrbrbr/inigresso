@@ -113,7 +113,7 @@ public final class InigressoPlugin extends JavaPlugin {
             linkRepo.bind(bus);
             links = new LinkService(portals, progress, bus, clock,
                     () -> new LinkService.Rules(settings.linkMaxRange(), settings.linkMaxOutgoing(),
-                            settings.linkRangeBase()),
+                            settings.linkRangeBase(), settings.linkRangeGrowth()),
                     linkRepo.loadLinks(), linkRepo.loadFields());
             scoreRepo = new ScoreRepository(database, state);
             long storedCycle = scoreRepo.storedCycleStart();

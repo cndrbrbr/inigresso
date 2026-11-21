@@ -78,7 +78,8 @@ Warnung im Log).
 | `portal.resonator-blocks` | Kupfer … Diamant | Aussehen der Resonatoren L1–L8 (genau 8 Blöcke) |
 | `proposal.min-level` | 2 | Ab dieser Spielerstufe darf man vorschlagen |
 | `proposal.max-open` | 3 | Offene Vorschläge je Spieler |
-| `link.range-base` | 160 | Reichweite = Wert × Portalstufe² (L1 160, L2 640, L3 1440) |
+| `link.range-base` | 250 | Reichweite der Stufe 1; deckt alle acht Nachbarzellen der automatischen Portale |
+| `link.range-growth` | 100 | Reichweite = range-base + Wert × (Stufe² − 1): L2 550, L3 1050, L4 1750 |
 | `link.max-range` | 2000 | Obergrenze der Link-Reichweite (Blöcke) |
 | `link.max-outgoing` | 8 | Links, die von einem Portal ausgehen dürfen |
 | `link.beam-height` | 5.0 | Höhe des Partikelstrahls über dem Kern |
