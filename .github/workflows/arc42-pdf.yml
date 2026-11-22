@@ -1,0 +1,48 @@
+name: arc42 als PDF
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'architektur/**'
+      - 'scripts/build-arc42.py'
+      - '.github/workflows/arc42-pdf.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  pdf:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Repository auschecken
+        uses: actions/checkout@v4
+
+      - name: Node.js einrichten
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Pandoc und LaTeX installieren
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pandoc texlive-xetex texlive-latex-extra texlive-lang-german fonts-lmodern
+
+      - name: Mermaid CLI installieren
+        env:
+          PUPPETEER_SKIP_DOWNLOAD: '1'
+        run: npm install --global @mermaid-js/mermaid-cli
+
+      - name: PDF erzeugen
+        env:
+          PUPPETEER_EXECUTABLE_PATH: /usr/bin/google-chrome
+        run: python3 scripts/build-arc42.py
+
+      - name: PDF zum Herunterladen bereitstellen
+        uses: actions/upload-artifact@v4
+        with:
+          name: inigresso-arc42
+          path: build/inigresso-arc42.pdf
+          if-no-files-found: error
+          retention-days: 30
