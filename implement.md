@@ -1,7 +1,7 @@
 # Inigresso – Umsetzungsplan
 
 Reihenfolge so gewählt, dass nach jeder Phase etwas Spielbares auf einem Testserver
-läuft. Regeln: [rules.md](rules.md), Aufbau: [architecture.md](architecture.md).
+läuft. Regeln: [rules.md](rules.md), Aufbau: [architektur/](architektur/README.md).
 
 ## Phase 0 – Grundgerüst
 

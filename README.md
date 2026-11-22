@@ -11,7 +11,7 @@ Lumen-Feldern. Echte Screenshots von meck mc2.*
 
 - [SPIELANLEITUNG.md](SPIELANLEITUNG.md) – Spieleranleitung
 - [rules.md](rules.md) – Spielregeln (vollständig, mit allen Zahlen)
-- [architecture.md](architecture.md) – Aufbau des Plugins
+- [architektur/](architektur/README.md) – Architektur nach arc42 (Aufbau, Konzepte, Entscheidungen)
 - [implement.md](implement.md) – Umsetzungsplan und Stand
 - [ADMIN_GUIDE.md](ADMIN_GUIDE.md) – Installation, Konfiguration, Admin-Befehle, Sicherung
 - Bebilderte Spieleranleitung: <https://cndrbrbr.github.io/inigresso/>
