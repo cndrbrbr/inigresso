@@ -12,12 +12,14 @@ import org.bukkit.scoreboard.Scoreboard;
 
 /**
  * Scoreboard rechts am Bildschirm (Haupt-Scoreboard, für alle gleich): Fläche, Einfluss,
- * Portale und Eroberungen aller drei Fraktionen, Restzeit des Zyklus, Top-Eroberer.
+ * Portale und Eroberungen aller drei Fraktionen, Restzeit des Zyklus, Top-Eroberer und Top-Linker
+ * (wechseln sich unten alle {@link #ROTATE_MS} ms ab, weil die Seitenleiste nur 15 Zeilen hat).
  */
 public final class Sidebar {
 
     static final String OBJECTIVE = "inigresso";
     static final int MAX_LINES = 15;
+    static final long ROTATE_MS = 10_000;
 
     /** Werte einer Fraktion. */
     public record Side(Faction faction, double area, long influence, double average, int portals, int captures) {
@@ -28,7 +30,7 @@ public final class Sidebar {
     }
 
     /** Alles, was angezeigt wird; sides in der Reihenfolge von Faction.playable(). */
-    public record Data(long remainingMs, List<Side> sides, List<Top> top) {
+    public record Data(long remainingMs, List<Side> sides, List<Top> top, List<Top> linkers) {
         /** Fraktion mit dem eindeutig höchsten Ø-Einfluss, sonst null. */
         public Faction leader() {
             return Faction.leader(f -> sides.stream().filter(s -> s.faction() == f)
@@ -40,6 +42,11 @@ public final class Sidebar {
 
     /** Zeilen von oben nach unten, ohne Bukkit (testbar). */
     public static List<String> lines(Data d) {
+        return lines(d, false);
+    }
+
+    /** @param linkers true = unten die Top-Linker statt der Top-Eroberer */
+    public static List<String> lines(Data d, boolean linkers) {
         List<String> out = new ArrayList<>();
         out.add(ChatColor.GRAY + "Zyklus: noch " + ChatColor.WHITE + remaining(d.remainingMs()));
         Faction leader = d.leader();
@@ -54,12 +61,13 @@ public final class Sidebar {
                     + ChatColor.WHITE + s.captures() + ChatColor.GRAY + " erobert");
         }
         out.add("");
-        out.add(ChatColor.GOLD + "Top-Eroberer");
-        if (d.top().isEmpty()) {
+        out.add(ChatColor.GOLD + (linkers ? "Top-Linker" : "Top-Eroberer"));
+        List<Top> list = linkers ? d.linkers() : d.top();
+        if (list.isEmpty()) {
             out.add(ChatColor.DARK_GRAY + " noch keine");
         }
         int i = 1;
-        for (Top t : d.top()) {
+        for (Top t : list) {
             out.add(ChatColor.GRAY + " " + i++ + ". " + ChatColor.WHITE + t.name() + ChatColor.GRAY + " " + t.count());
         }
         return out.size() > MAX_LINES ? out.subList(0, MAX_LINES) : out;
@@ -97,7 +105,7 @@ public final class Sidebar {
         if (o.getDisplaySlot() != DisplaySlot.SIDEBAR) {
             o.setDisplaySlot(DisplaySlot.SIDEBAR);
         }
-        List<String> lines = lines(d);
+        List<String> lines = lines(d, (System.currentTimeMillis() / ROTATE_MS) % 2 == 1);
         for (int i = 0; i < Math.max(lines.size(), shown.size()); i++) {
             String now = i < lines.size() ? entry(lines.get(i), i) : null;
             String before = i < shown.size() ? shown.get(i) : null;

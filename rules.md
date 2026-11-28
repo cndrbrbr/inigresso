@@ -269,8 +269,10 @@ Stufen: 1 = 0 AP, 2 = 2 500, 3 = 20 000, 4 = 70 000, 5 = 150 000, 6 = 300 000,
   Zahl der gehaltenen **Portale** und der **Eroberungen** im Zyklus. Die führende Fraktion
   (eindeutig höchster Ø) ist mit ★ markiert. Je Fraktion drei Zeilen: Name, Einfluss mit Ø,
   dann Fläche · Portale · Eroberungen.
-- **Eroberung** = ein neutrales Portal bekommt seinen ersten Resonator. Darunter stehen die
-  drei Spieler mit den meisten Eroberungen im Zyklus (Top-Eroberer).
+- **Eroberung** = ein neutrales Portal bekommt seinen ersten Resonator. Darunter stehen im
+  Wechsel alle 10 Sekunden die drei Spieler mit den meisten Eroberungen im Zyklus
+  (**Top-Eroberer**) und die drei Spieler, die im Zyklus die meisten Links gezogen haben
+  (**Top-Linker**). Ein Link zählt beim Ziehen, auch wenn er später zerstört wird.
 - Jeder Spieler kann es mit `/ig scoreboard aus` für sich ausblenden (`/ig scoreboard an`
   holt es zurück); die Einstellung bleibt gespeichert. Für alle abschaltbar mit
   `scoreboard.enabled: false` in der config.yml.
@@ -296,7 +298,7 @@ Stufen: 1 = 0 AP, 2 = 2 500, 3 = 20 000, 4 = 70 000, 5 = 150 000, 6 = 300 000,
   Fraktionsfarbe mit Stufe; Klick zeigt Besitzer, Resonatoren, Koordinaten), Links als
   Linien und Felder als Flächen. Aktualisiert wird wenige Sekunden nach jeder Änderung.
 - Ein Kasten auf der Webkarte zeigt den Spielstand wie das Scoreboard (Einfluss, Fläche,
-  Portale, Top-Eroberer), alle 20 Sekunden neu.
+  Portale, Top-Eroberer und Top-Linker), alle 20 Sekunden neu.
 - Auf meckminecraft: <https://karte-inigresso.meckminecraft.de/>.
 
 ## 11. Scanner und Navigation

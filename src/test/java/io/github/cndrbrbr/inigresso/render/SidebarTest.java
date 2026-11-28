@@ -15,7 +15,8 @@ class SidebarTest {
         return new Sidebar.Data(3L * 86_400_000 + 4 * 3_600_000 + 5 * 60_000, List.of(
                 new Sidebar.Side(Faction.LUMEN, 12_345.6, 124, lumenAvg, 5, 7),
                 new Sidebar.Side(Faction.WAECHTER, 800, 8, waechterAvg, 3, 2),
-                new Sidebar.Side(Faction.CLIP, 0, 0, 0, 1, 0)), top);
+                new Sidebar.Side(Faction.CLIP, 0, 0, 0, 1, 0)), top,
+                List.of(new Sidebar.Top("lia", 9), new Sidebar.Top("max", 2)));
     }
 
     @Test
@@ -34,6 +35,16 @@ class SidebarTest {
         assertEquals("Top-Eroberer", plain.get(11));
         assertEquals(" 1. anna 4", plain.get(12));
         assertEquals(" 3. cem 1", plain.get(14));
+    }
+
+    @Test
+    void topLinkerStattTopEroberer() {
+        List<String> plain = Sidebar.lines(data(100, 20, List.of(new Sidebar.Top("anna", 4))), true).stream()
+                .map(ChatColor::stripColor).toList();
+        assertEquals("Top-Linker", plain.get(11));
+        assertEquals(" 1. lia 9", plain.get(12));
+        assertEquals(" 2. max 2", plain.get(13));
+        assertTrue(plain.size() <= 15);
     }
 
     @Test

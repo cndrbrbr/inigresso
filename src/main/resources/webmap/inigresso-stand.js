@@ -53,11 +53,14 @@
                 html += "</tr>";
             }
             html += "</table>";
-            html += "<div class='ig-sub'>Top-Eroberer</div>";
-            if (!data.top.length) { html += "<div class='ig-muted'>noch keine</div>"; }
-            for (i = 0; i < data.top.length; i++) {
-                html += "<div>" + (i + 1) + ". " + esc(data.top[i].name) + " <span class='ig-muted'>"
-                    + data.top[i].count + "</span></div>";
+            var lists = [["Top-Eroberer", data.top || []], ["Top-Linker", data.linkers || []]];
+            for (var l = 0; l < lists.length; l++) {
+                html += "<div class='ig-sub'>" + lists[l][0] + "</div>";
+                if (!lists[l][1].length) { html += "<div class='ig-muted'>noch keine</div>"; }
+                for (i = 0; i < lists[l][1].length; i++) {
+                    html += "<div>" + (i + 1) + ". " + esc(lists[l][1][i].name) + " <span class='ig-muted'>"
+                        + lists[l][1][i].count + "</span></div>";
+                }
             }
             html += "<div class='ig-muted ig-small'>Stand " + new Date(data.updated).toLocaleTimeString("de-DE") + "</div>";
         }

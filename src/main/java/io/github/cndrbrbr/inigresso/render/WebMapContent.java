@@ -76,13 +76,21 @@ public final class WebMapContent {
                     .append(",\"portals\":").append(s.portals())
                     .append(",\"captures\":").append(s.captures()).append('}');
         }
-        b.append("],\"top\":[");
-        for (int i = 0; i < d.top().size(); i++) {
-            Sidebar.Top t = d.top().get(i);
+        b.append("],\"top\":");
+        list(b, d.top());
+        b.append(",\"linkers\":");
+        list(b, d.linkers());
+        return b.append('}').toString();
+    }
+
+    private static void list(StringBuilder b, List<Sidebar.Top> tops) {
+        b.append('[');
+        for (int i = 0; i < tops.size(); i++) {
+            Sidebar.Top t = tops.get(i);
             b.append(i > 0 ? "," : "").append("{\"name\":").append(json(t.name()))
                     .append(",\"count\":").append(t.count()).append('}');
         }
-        return b.append("]}").toString();
+        b.append(']');
     }
 
     static String json(String s) {

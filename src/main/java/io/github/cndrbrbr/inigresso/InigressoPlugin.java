@@ -76,6 +76,7 @@ public final class InigressoPlugin extends JavaPlugin {
     private io.github.cndrbrbr.inigresso.render.ScannerRenderer scannerRenderer;
     private io.github.cndrbrbr.inigresso.item.Scanner scanner;
     private io.github.cndrbrbr.inigresso.service.CaptureStats captures;
+    private io.github.cndrbrbr.inigresso.service.LinkStats linkStats;
     private io.github.cndrbrbr.inigresso.render.Sidebar sidebar;
     private final Clock clock = Clock.systemDefaultZone();
 
@@ -133,6 +134,10 @@ public final class InigressoPlugin extends JavaPlugin {
             captureRepo.bind(bus);
             captures = new io.github.cndrbrbr.inigresso.service.CaptureStats(bus,
                     captureRepo.loadSince(score.cycleStart()));
+            var linkLogRepo = new io.github.cndrbrbr.inigresso.store.LinkLogRepository(database);
+            linkLogRepo.bind(bus);
+            linkStats = new io.github.cndrbrbr.inigresso.service.LinkStats(bus,
+                    linkLogRepo.loadSince(score.cycleStart()));
             autoCells = new AutoCellRepository(database);
             autoDone = autoCells.loadDone();
             getLogger().info(profiles.all().size() + " Spielerprofile, " + portals.all().size() + " Portale, "
@@ -360,12 +365,17 @@ public final class InigressoPlugin extends JavaPlugin {
     public io.github.cndrbrbr.inigresso.render.Sidebar.Data standing() {
         long since = score.cycleStart();
         captures.prune(since);
+        linkStats.prune(since);
         var st = score.standing();
         return (new io.github.cndrbrbr.inigresso.render.Sidebar.Data(
                 score.cycleEnd() - clock.millis(),
                 java.util.Arrays.stream(io.github.cndrbrbr.inigresso.model.Faction.playable())
                         .map(f -> side(f, st.avg(f), since)).toList(),
                 captures.top(since, 3).stream()
+                        .map(e -> new io.github.cndrbrbr.inigresso.render.Sidebar.Top(
+                                profiles.get(e.player()).map(p -> p.lastName()).orElse("?"), e.count()))
+                        .toList(),
+                linkStats.top(since, 3).stream()
                         .map(e -> new io.github.cndrbrbr.inigresso.render.Sidebar.Top(
                                 profiles.get(e.player()).map(p -> p.lastName()).orElse("?"), e.count()))
                         .toList()));
